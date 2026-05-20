@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { YOUTUBE_VIDEOS, PIB_TASKS } from '@/lib/tasks-data';
 
 export interface UserStats {
   balance: number;
@@ -73,6 +74,25 @@ export function useEarnings() {
 
   const completeTask = (taskId: string, reward: number) => {
     if (stats.completedTasks.includes(taskId)) return false;
+
+    // Sequential day check
+    const videoTask = YOUTUBE_VIDEOS.find(v => v.id === taskId);
+    const pibTask = PIB_TASKS.find(p => p.id === taskId);
+    const taskDay = videoTask ? videoTask.day : pibTask ? pibTask.day : 1;
+
+    const isDayUnlocked = (dayNum: number): boolean => {
+      if (dayNum === 1) return true;
+      for (let d = 1; d < dayNum; d++) {
+        const dayVideos = YOUTUBE_VIDEOS.filter(v => v.day === d);
+        const dayPib = PIB_TASKS.find(p => p.day === d);
+        const allVideosCompleted = dayVideos.every(v => stats.completedTasks.includes(v.id));
+        const pibCompleted = dayPib ? stats.completedTasks.includes(dayPib.id) : true;
+        if (!allVideosCompleted || !pibCompleted) return false;
+      }
+      return true;
+    };
+
+    if (!isDayUnlocked(taskDay)) return false;
 
     const today = new Date().toDateString();
     const isNewDay = stats.lastTaskDate !== today;

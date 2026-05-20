@@ -46,134 +46,34 @@ const VIDEO_IDS = [
   '8hHW1oY26kM'  // Sustainable economy
 ];
 
-// Curated financial & educational titles for 100 tasks (5 per day for 20 days)
-const VIDEO_TITLES = [
-  // Day 1
-  'Como o Dinheiro é Criado pelos Bancos Centrais',
-  'A História Secreta do Papel-Moeda e do Ouro',
-  'Como Funciona a Bolsa de Valores de Forma Simples',
-  'O que são Dividendos e Como Viver de Renda',
-  'Os 5 Maiores Erros Financeiros de Jovens Adultos',
-  // Day 2
-  'Por que a Inflação Faz o Seu Dinheiro Valer Menos?',
-  'A Verdade Sobre o Tesouro Direto e Renda Fixa',
-  'Como Montar uma Reserva de Emergência em 3 Passos',
-  'Entendendo a Taxa Selic e seu Impacto no Bolso',
-  'O que é CDB, LCI e LCA? Guia Definitivo',
-  // Day 3
-  'Como os Ricos Pensam Sobre Poupança e Gastos',
-  'A Diferença entre Ativos e Passivos Financeiros',
-  'Como Criar um Planejamento Financeiro Pessoal',
-  'Vale a Pena Alugar ou Comprar Imóvel Próprio?',
-  'Como Funciona o Score de Crédito e Como Aumentar',
-  // Day 4
-  'O que é o PIB e Como ele Afeta sua Vida Real',
-  'A Força do Agronegócio na Balança Comercial',
-  'Como Funciona o Mercado de Criptomoedas',
-  'O que é Bitcoin e Por que Ele Tem Valor?',
-  'Os Riscos e Oportunidades do Day Trade',
-  // Day 5
-  'Como a Inteligência Artificial Está Mudando a Economia',
-  'O que é Fundos Imobiliários (FIIs) de Tijolo e Papel',
-  'Como Funciona a Previdência Privada no Brasil',
-  'O Efeito Bola de Neve dos Juros Compostos',
-  'Como Negociar e Quitar Dívidas Rapidamente',
-  // Day 6
-  'A Economia da China vs Estados Unidos',
-  'Como Funciona a Tributação sobre Investimentos',
-  'O que é Imposto de Renda e Quem Deve Declarar',
-  'Como a Taxa de Câmbio Afeta os Preços no Supermercado',
-  'O que são Commodities e Como Influenciam o PIB',
-  // Day 7
-  'Como Poupar R$ 1.000 por Mês Ganhando Pouco',
-  'A Regra 50/30/20 de Orçamento Pessoal',
-  'Como Ganhar Renda Extra Trabalhando de Casa',
-  'O que é FII e Como Escolher o Melhor Fundo',
-  'O que é a B3 e Como Começar a Investir nela',
-  // Day 8
-  'Como Funciona o Imposto sobre Grandes Fortunas',
-  'O que é Microempreendedor Individual (MEI)',
-  'Como Abrir uma Empresa e Registrar Marca no Brasil',
-  'A Importância do Fluxo de Caixa para Negócios',
-  'Como Criar um Modelo de Negócios Canvas',
-  // Day 9
-  'Por que o Dólar Sempre Sobe em Crises?',
-  'O que é a Lei da Oferta e da Procura',
-  'Como Funciona o Sistema Cooperativo Financeiro',
-  'O que é Bancarrota e Como Países Quebram',
-  'A Crise de 2008 Explicada em 5 Minutos',
-  // Day 10
-  'Como a Tecnologia Blockchain Está Revolucionando Contratos',
-  'O que são Contratos Inteligentes (Smart Contracts)',
-  'Como Investir no Exterior Diretamente do Brasil',
-  'O que é ETF (Exchange Traded Funds) e Como Funciona',
-  'Como Montar uma Carteira de Investimentos Diversificada',
-  // Day 11
-  'O que é Economia Circular e Por que Importa',
-  'Como Funciona o Crédito Consignado e seus Riscos',
-  'O que é Portabilidade de Crédito e Como Fazer',
-  'Como a Taxa Referencial (TR) Afeta a Poupança',
-  'O que é Financiamento Imobiliário SAC vs Price',
-  // Day 12
-  'Como os Aplicativos de Finanças Ajudam no Controle',
-  'O Efeito Psicologia Econômica nas Compras por Impulso',
-  'Como Evitar Fraudes e Golpes no Pix',
-  'O que é Open Finance e Como ele Te Beneficia',
-  'Como Funciona o Cartão de Crédito e a Anuidade',
-  // Day 13
-  'O que é Economia Gig e o Futuro do Trabalho',
-  'Como o Trabalho Remoto Impacta as Grandes Cidades',
-  'O que é Capital de Giro e Como Calcular',
-  'Como Funciona o Valuation de uma Startup',
-  'O que são Investidores Anjo e Venture Capital',
-  // Day 14
-  'Como a Globalização Afeta a Indústria Nacional',
-  'O que é Dumping e Protecionismo Econômico',
-  'Como Funcionam as Zonas de Livre Comércio',
-  'O que é O Mercosul e seu Impacto no Brasil',
-  'A História do Plano Real e o Fim da Hiperinflação',
-  // Day 15
-  'Como Funciona o Fundo Garantidor de Crédito (FGC)',
-  'O que é Liquidez Diária e Por que Ela é Essencial',
-  'Como Ler a Lâmina de um Fundo de Investimento',
-  'O que são Debêntures e Como Emprestar para Empresas',
-  'Como Investir em Startups com Pouco Dinheiro',
-  // Day 16
-  'A Economia por Trás dos Esportes Profissionais',
-  'Como Funcionam as Patentes e Propriedade Intelectual',
-  'O que é Economia Criativa e Como Empreender Nela',
-  'Como o E-commerce Cresceu no Mercado Brasileiro',
-  'Como Fazer Dropshipping de Forma Legal no Brasil',
-  // Day 17
-  'O que é a Reforma Tributária e o que Muda',
-  'Como a Simplificação de Impostos Afeta as Empresas',
-  'O que é IVA (Imposto sobre Valor Agregado)',
-  'Como a Carga Tributária do Brasil se Compara ao Mundo',
-  'Como o Microcrédito Transforma Pequenas Comunidades',
-  // Day 18
-  'Como o Consumo Sustentável Muda o Mercado',
-  'O que é ESG e Por que Investidores Focam Nisso',
-  'Como Funciona o Mercado de Crédito de Carbono',
-  'O que é Greenwashing e Como Identificar',
-  'O Futuro da Energia Solar na Matriz Brasileira',
-  // Day 19
-  'Como Funciona o Planejamento Sucessório',
-  'O que é Holding Familiar e Como Protege Bens',
-  'Como Funciona o Inventário e Como Evitar Custos',
-  'A Diferença entre Doação e Herança de Bens',
-  'Como Fazer um Testamento Legal no Brasil',
-  // Day 20
-  'A Mentalidade Financeira para a Liberdade Econômica',
-  'Como o Foco em Longo Prazo Garante Sucesso Financeiro',
-  'Os 3 Pilares da Riqueza Segundo Grandes Investidores',
-  'Como Ensinar Educação Financeira para Crianças',
-  'O Impacto da Gratidão Financeira na sua Relação com Dinheiro'
-];
+// Curated real YouTube titles corresponding to their videoId
+const REAL_VIDEO_TITLES: { [id: string]: string } = {
+  'dQw4w9WgXcQ': 'Rick Astley - Never Gonna Give You Up (Official Music Video)',
+  'jNQXAC9IVRw': 'Me at the zoo',
+  'M7lc1UVf-VE': 'YouTube Developers: Embedded Player Customization',
+  '9bZkp7q19f0': 'PSY - GANGNAM STYLE (강남스타일) M/V',
+  'kJQP7kiw5Fk': 'Luis Fonsi - Despacito ft. Daddy Yankee',
+  'y6120QOlsfU': 'Darude - Sandstorm',
+  'L_LUpnjgPso': 'What is Life? Is Death Real? - Kurzgesagt',
+  'hHW1oY26kxQ': 'The Size of the Universe - Kurzgesagt',
+  '3LopI4YeC4I': 'How does the economy work? - TED-Ed',
+  'Y37-gM1tqSg': 'Why the US economy is stronger than others - Vox',
+  'sN8t12pMPlk': 'What is inflation? - CNBC',
+  'W6NZfCO5SIk': 'JavaScript Tutorial for Beginners - Programming with Mosh',
+  'zZ7AimPACzc': 'How this 28-year-old makes $1 million a year - CNBC Make It',
+  'R7gO9A9yM2I': 'Inside the global shipping container crisis - Bloomberg',
+  'b11-R8E4Ffs': 'How Global Logistics Work - Freightos',
+  'Uw2mKz18u8E': 'How does money work? - TED-Ed',
+  'fTz4Nhg_qJI': 'Intro to Economics: Crash Course',
+  '35R7g98y0U8': 'The Psychology of Money - Financial Independence',
+  'A9U2mRz8KzI': 'How banks create money - Banking system explained',
+  '8hHW1oY26kM': 'Sustainable Economy - Future of Clean Energy'
+};
 
 export const YOUTUBE_VIDEOS: VideoTaskData[] = Array.from({ length: 100 }, (_, i) => {
   const day = Math.floor(i / 5) + 1;
   const videoId = VIDEO_IDS[i % VIDEO_IDS.length];
-  const title = VIDEO_TITLES[i];
+  const title = REAL_VIDEO_TITLES[videoId] || `Tarefa de Vídeo #${i + 1}`;
   // Alternating rewards
   const reward = i % 2 === 0 ? 1.50 : 1.00;
   

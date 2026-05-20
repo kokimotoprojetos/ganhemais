@@ -53,6 +53,22 @@ export default function HomePage() {
     }
   };
 
+  const isDayUnlocked = useCallback((dayNum: number): boolean => {
+    if (dayNum === 1) return true;
+    for (let d = 1; d < dayNum; d++) {
+      const dayVideos = YOUTUBE_VIDEOS.filter(v => v.day === d);
+      const dayPib = PIB_TASKS.find(p => p.day === d);
+      
+      const allVideosCompleted = dayVideos.every(v => stats.completedTasks.includes(v.id));
+      const pibCompleted = dayPib ? stats.completedTasks.includes(dayPib.id) : true;
+      
+      if (!allVideosCompleted || !pibCompleted) {
+        return false;
+      }
+    }
+    return true;
+  }, [stats.completedTasks]);
+
   // States for deposit / subscription modal
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [depositPredefinedAmount, setDepositPredefinedAmount] = useState<number | null>(null);
@@ -282,11 +298,15 @@ export default function HomePage() {
                     const totalTasks = dayVideos.length + (dayPib ? 1 : 0);
                     const isFullyCompleted = totalDone === totalTasks;
 
+                    const unlocked = isDayUnlocked(dayNum);
+
                     let btnStyle = "border-slate-100 bg-white text-slate-700 hover:border-slate-300";
                     if (isSelected) {
                       btnStyle = "border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20";
                     } else if (isFullyCompleted) {
                       btnStyle = "border-emerald-500/30 bg-emerald-50/50 text-emerald-700";
+                    } else if (!unlocked) {
+                      btnStyle = "border-slate-100 bg-slate-50 text-slate-400 opacity-60 hover:border-slate-200 cursor-not-allowed";
                     }
 
                     return (
@@ -295,14 +315,15 @@ export default function HomePage() {
                         onClick={() => handleSetActiveDay(dayNum)}
                         className={`px-5 py-3.5 rounded-[2.5rem] border-2 font-black text-sm transition-all shrink-0 flex flex-col items-center gap-1 min-w-[105px] cursor-pointer ${btnStyle}`}
                       >
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
+                          {!unlocked && <Lock className="w-3 h-3 text-slate-400 shrink-0" />}
                           <span>Dia {dayNum}</span>
                           {isToday && (
                             <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-white text-emerald-600' : 'bg-emerald-500 text-white animate-pulse'}`}>HOJE</span>
                           )}
                         </div>
-                        <span className={`text-[9px] font-bold ${isSelected ? 'text-emerald-100' : 'text-slate-400'}`}>
-                          {totalDone}/{totalTasks} Concluído
+                        <span className={`text-[9px] font-bold ${isSelected ? 'text-emerald-100' : unlocked ? 'text-slate-400' : 'text-slate-300'}`}>
+                          {unlocked ? `${totalDone}/{totalTasks} Concluído` : 'Bloqueado'}
                         </span>
                       </button>
                     );
@@ -343,51 +364,75 @@ export default function HomePage() {
                 return null;
               })()}
 
-              {/* Tasks Section */}
-              <div>
-                <div className="flex justify-between items-end mb-6">
-                  <h3 className="text-xl font-black text-slate-900 tracking-tight">Vídeos do Dia</h3>
-                  <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-black">
-                    <Zap className="w-3.5 h-3.5 fill-current" /> {(() => {
-                      const today = new Date().toDateString();
-                      const completedToday = stats.lastTaskDate === today ? (stats.completedTodayCount || 0) : 0;
-                      const maxTasks = stats.plan === 'Basic' ? 5 : stats.plan === 'Silver' ? 15 : Infinity;
-                      const remainingTasks = maxTasks - completedToday;
-                      return stats.plan === 'Gold' ? 'Ilimitado' : `${Math.max(0, remainingTasks)} tarefas restantes hoje`;
-                    })()}
+              {/* Tasks Section / Lock Check */}
+              {!isDayUnlocked(activeDay) ? (
+                <div className="bg-white border border-slate-200 rounded-[2.5rem] p-16 text-center shadow-md flex flex-col items-center max-w-xl mx-auto space-y-6 my-10 animate-fade-in">
+                  <div className="w-20 h-20 bg-slate-100 border-2 border-slate-200 text-slate-400 rounded-full flex items-center justify-center shadow-inner">
+                    <Lock className="w-10 h-10" />
                   </div>
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-black text-slate-800 tracking-tight">Dia Bloqueado</h3>
+                    <p className="text-slate-500 text-sm leading-relaxed font-medium">
+                      Para realizar as tarefas do **Dia {activeDay}**, você precisa primeiro concluir todas as tarefas (vídeos e questionários) do **Dia {activeDay - 1}**.
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => handleSetActiveDay(activeDay - 1)}
+                    className="px-8 py-4.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-sm rounded-2xl shadow-lg shadow-emerald-500/20 transition-all cursor-pointer flex items-center gap-2 group"
+                  >
+                    IR PARA O DIA {activeDay - 1}
+                    <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {YOUTUBE_VIDEOS.filter(v => v.day === activeDay).map((video) => (
-                    <YouTubeTask 
-                      key={video.id}
-                      videoId={video.videoId} 
-                      reward={video.reward} 
-                      title={video.title} 
-                      isCompleted={stats.completedTasks.includes(video.id)}
-                      onComplete={(reward) => handleTaskComplete(video.id, reward)} 
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* PIB & Economics Tasks */}
-              <div className="pt-4">
-                <div className="flex justify-between items-end mb-6">
+              ) : (
+                <>
+                  {/* Tasks Section */}
                   <div>
-                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Desafios de PIB & Economia Real</h3>
-                    <p className="text-sm font-medium text-slate-500 mt-1">Responda a perguntas econômicas e ganhe por responder pesquisas reais.</p>
+                    <div className="flex justify-between items-end mb-6">
+                      <h3 className="text-xl font-black text-slate-900 tracking-tight">Vídeos do Dia</h3>
+                      <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-black">
+                        <Zap className="w-3.5 h-3.5 fill-current" /> {(() => {
+                          const today = new Date().toDateString();
+                          const completedToday = stats.lastTaskDate === today ? (stats.completedTodayCount || 0) : 0;
+                          const maxTasks = stats.plan === 'Basic' ? 5 : stats.plan === 'Silver' ? 15 : Infinity;
+                          const remainingTasks = maxTasks - completedToday;
+                          return stats.plan === 'Gold' ? 'Ilimitado' : `${Math.max(0, remainingTasks)} tarefas restantes hoje`;
+                        })()}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                      {YOUTUBE_VIDEOS.filter(v => v.day === activeDay).map((video) => (
+                        <YouTubeTask 
+                          key={video.id}
+                          videoId={video.videoId} 
+                          reward={video.reward} 
+                          title={video.title} 
+                          isCompleted={stats.completedTasks.includes(video.id)}
+                          onComplete={(reward) => handleTaskComplete(video.id, reward)} 
+                        />
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg text-xs font-black">
-                    <BookOpen className="w-3.5 h-3.5" /> 100% Educativo
+
+                  {/* PIB & Economics Tasks */}
+                  <div className="pt-4">
+                    <div className="flex justify-between items-end mb-6">
+                      <div>
+                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Desafios de PIB & Economia Real</h3>
+                        <p className="text-sm font-medium text-slate-500 mt-1">Responda a perguntas econômicas e ganhe por responder pesquisas reais.</p>
+                      </div>
+                      <div className="flex items-center gap-2 text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg text-xs font-black">
+                        <BookOpen className="w-3.5 h-3.5" /> 100% Educativo
+                      </div>
+                    </div>
+                    <PibTasks 
+                      completedTasks={stats.completedTasks} 
+                      onComplete={handleTaskComplete} 
+                      activeDay={activeDay}
+                    />
                   </div>
-                </div>
-                <PibTasks 
-                  completedTasks={stats.completedTasks} 
-                  onComplete={handleTaskComplete} 
-                  activeDay={activeDay}
-                />
-              </div>
+                </>
+              )}
             </motion.div>
           )}
 

@@ -275,7 +275,7 @@ export function DepositModal({ isOpen, onClose, onSuccess, predefinedAmount, pre
                   <h3 className="text-xl font-black text-slate-900 tracking-tight">
                     {predefinedPlan ? 'Assinar com Pix' : 'Depositar na Carteira'}
                   </h3>
-                  <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Gateway LytronPay</p>
+                  <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Gateway de Pagamento Seguro</p>
                 </div>
               </div>
 
@@ -410,7 +410,7 @@ export function DepositModal({ isOpen, onClose, onSuccess, predefinedAmount, pre
                 className="w-14 h-14 border-4 border-emerald-500 border-t-transparent rounded-full shadow-[0_0_15px_rgba(16,185,129,0.2)]"
               />
               <div>
-                <h4 className="text-lg font-black text-slate-800 tracking-tight">Comunicando com LytronPay</h4>
+                <h4 className="text-lg font-black text-slate-800 tracking-tight">Comunicando com o Banco</h4>
                 <p className="text-slate-400 font-medium text-xs mt-1">Gerando Pix dinâmico com chave de acesso segura...</p>
               </div>
             </div>

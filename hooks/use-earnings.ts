@@ -102,6 +102,14 @@ export function useEarnings() {
     }));
   };
 
+  const deposit = (amount: number) => {
+    setStats(prev => ({
+      ...prev,
+      balance: prev.balance + amount,
+    }));
+    return true;
+  };
+
   const dailyCheckIn = () => {
     const today = new Date().toDateString();
     if (stats.lastCheckIn === today) return false;
@@ -129,6 +137,7 @@ export function useEarnings() {
     inviteUser,
     withdraw,
     upgradePlan,
+    deposit,
     isLoading
   };
 }

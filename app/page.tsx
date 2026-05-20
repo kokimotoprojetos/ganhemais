@@ -25,14 +25,52 @@ import { useEarnings } from '@/hooks/use-earnings';
 import { YouTubeTask } from '@/components/youtube-task';
 import { PibTasks } from '@/components/pib-tasks';
 import { BookOpen } from 'lucide-react';
+import { DepositModal } from '@/components/deposit-modal';
 
 
 type Tab = 'painel' | 'carteira' | 'planos' | 'convites';
 
 export default function HomePage() {
-  const { stats, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, upgradePlan } = useEarnings();
+  const { stats, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, upgradePlan, deposit } = useEarnings();
   const [activeTab, setActiveTab] = useState<Tab>('painel');
   const [showNotification, setShowNotification] = useState<string | null>(null);
+
+  // States for deposit / subscription modal
+  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [depositPredefinedAmount, setDepositPredefinedAmount] = useState<number | null>(null);
+  const [depositPredefinedPlan, setDepositPredefinedPlan] = useState<'Silver' | 'Gold' | null>(null);
+
+  const handleOpenDeposit = (amount: number | null = null, plan: 'Silver' | 'Gold' | null = null) => {
+    setDepositPredefinedAmount(amount);
+    setDepositPredefinedPlan(plan);
+    setIsDepositModalOpen(true);
+  };
+
+  const handleDepositSuccess = (amount: number, plan?: 'Silver' | 'Gold') => {
+    if (plan) {
+      upgradePlan(plan);
+      triggerNotification(`Parabéns! Plano ${plan} assinado com sucesso via Pix!`);
+    } else {
+      deposit(amount);
+      triggerNotification(`Depósito de R$ ${amount.toFixed(2)} confirmado!`);
+    }
+  };
+
+  const handleSubscribePlan = (plan: 'Silver' | 'Gold', price: number) => {
+    if (stats.balance >= price) {
+      const confirmPurchase = window.confirm(`Você possui R$ ${stats.balance.toFixed(2)} de saldo. Deseja assinar o plano ${plan} usando R$ ${price.toFixed(2)} do seu saldo de carteira?`);
+      if (confirmPurchase) {
+        withdraw(price);
+        upgradePlan(plan);
+        triggerNotification(`Assinatura do plano ${plan} ativada usando seu saldo!`);
+      } else {
+        handleOpenDeposit(price, plan);
+      }
+    } else {
+      handleOpenDeposit(price, plan);
+    }
+  };
+
 
   const triggerNotification = useCallback((msg: string) => {
     setShowNotification(msg);
@@ -310,8 +348,8 @@ export default function HomePage() {
                     SACAR SALDO
                   </button>
                   <button 
-                    onClick={() => triggerNotification('Sistema de depósito via PIX em manutenção.')}
-                    className="flex items-center justify-center gap-4 bg-emerald-50 text-emerald-700 border-2 border-emerald-100 p-6 rounded-[2rem] font-black text-lg shadow-xl hover:bg-emerald-100 transition-all group"
+                    onClick={() => handleOpenDeposit()}
+                    className="flex items-center justify-center gap-4 bg-emerald-50 text-emerald-700 border-2 border-emerald-100 p-6 rounded-[2rem] font-black text-lg shadow-xl hover:bg-emerald-100 transition-all group cursor-pointer"
                   >
                     <ArrowDownLeft className="w-6 h-6 text-emerald-600 group-hover:-translate-x-1 group-hover:translate-y-1 transition-transform" />
                     DEPOSITAR
@@ -386,11 +424,8 @@ export default function HomePage() {
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-500" /> Saque priorizado</li>
                   </ul>
                   <button 
-                    onClick={() => {
-                      upgradePlan('Silver');
-                      triggerNotification('Plano Silver assinado com sucesso!');
-                    }}
-                    className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all"
+                    onClick={() => handleSubscribePlan('Silver', 29.90)}
+                    className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all cursor-pointer"
                   >
                     ASSINAR AGORA
                   </button>
@@ -411,11 +446,8 @@ export default function HomePage() {
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-400" /> Suporte 24h VIP</li>
                   </ul>
                   <button 
-                    onClick={() => {
-                      upgradePlan('Gold');
-                      triggerNotification('Bem-vindo à Elite GanheMais!');
-                    }}
-                    className="w-full py-4 bg-white text-slate-900 rounded-2xl font-black text-sm shadow-xl shadow-white/5 hover:bg-slate-100 transition-all"
+                    onClick={() => handleSubscribePlan('Gold', 97.00)}
+                    className="w-full py-4 bg-white text-slate-900 rounded-2xl font-black text-sm shadow-xl shadow-white/5 hover:bg-slate-100 transition-all cursor-pointer"
                   >
                     TORNE-SE ELITE
                   </button>
@@ -481,6 +513,15 @@ export default function HomePage() {
           )}
         </AnimatePresence>
       </main>
+
+      {/* Deposit/Subscription Modal */}
+      <DepositModal
+        isOpen={isDepositModalOpen}
+        onClose={() => setIsDepositModalOpen(false)}
+        onSuccess={handleDepositSuccess}
+        predefinedAmount={depositPredefinedAmount}
+        predefinedPlan={depositPredefinedPlan}
+      />
 
       {/* Notifications */}
       <AnimatePresence>

@@ -59,7 +59,7 @@ export function PibTasks({ completedTasks, onComplete, activeDay }: PibTasksProp
           return (
             <div 
               key={task.id} 
-              className={`bg-white border-2 rounded-[2.5rem] p-8 flex flex-col justify-between shadow-lg transition-all duration-300 ${
+              className={`bg-white border-2 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 flex flex-col justify-between shadow-lg transition-all duration-300 ${
                 isDone 
                   ? 'border-emerald-500 bg-emerald-50/20' 
                   : 'border-slate-100 hover:border-emerald-300 hover:shadow-2xl hover:shadow-emerald-500/5'
@@ -122,7 +122,7 @@ export function PibTasks({ completedTasks, onComplete, activeDay }: PibTasksProp
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-slate-900 border border-slate-800 rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl p-8 relative flex flex-col justify-between max-h-[90vh]"
+              className="bg-slate-900 border border-slate-800 rounded-[2rem] md:rounded-[2.5rem] w-full max-w-2xl shadow-2xl p-5 md:p-8 relative flex flex-col justify-between max-h-[90vh] overflow-y-auto"
             >
               {!showVictory ? (
                 <>

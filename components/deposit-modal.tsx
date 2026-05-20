@@ -249,7 +249,7 @@ export function DepositModal({ isOpen, onClose, onSuccess, predefinedAmount, pre
           animate={{ scale: 1, y: 0, opacity: 1 }}
           exit={{ scale: 0.95, y: 15, opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-          className="relative bg-white border border-slate-200/80 w-full max-w-lg rounded-[2.5rem] p-8 shadow-[0_30px_70px_rgba(0,0,0,0.15)] z-10 overflow-hidden flex flex-col"
+          className="relative bg-white border border-slate-200/80 w-full max-w-lg rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 shadow-[0_30px_70px_rgba(0,0,0,0.15)] z-10 overflow-hidden flex flex-col"
         >
           {/* Top Close Button */}
           {step !== 'loading' && (

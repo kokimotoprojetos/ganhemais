@@ -154,7 +154,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900 overflow-hidden">
       {/* Sidebar Navigation */}
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
+      <aside className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col shrink-0">
         <div className="p-8">
           <div className="flex items-center gap-2 mb-10 overflow-hidden">
             <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
@@ -202,15 +202,71 @@ export default function HomePage() {
         </div>
       </aside>
 
+      {/* Mobile Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 flex justify-around py-3 md:hidden shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+        {[
+          { id: 'painel', icon: LayoutDashboard, label: 'Painel' },
+          { id: 'carteira', icon: CreditCard, label: 'Carteira' },
+          { id: 'planos', icon: Rocket, label: 'Planos' },
+          { id: 'convites', icon: UserPlus, label: 'Convites' },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as Tab)}
+            className={`flex flex-col items-center gap-1 transition-all cursor-pointer ${
+              activeTab === tab.id 
+                ? 'text-emerald-600 font-black scale-105' 
+                : 'text-slate-400 font-medium'
+            }`}
+          >
+            <tab.icon className="w-5 h-5 shrink-0" />
+            <span className="text-[10px] tracking-tight">{tab.label}</span>
+          </button>
+        ))}
+      </nav>
+
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-y-auto p-8">
+      <main className="flex-1 flex flex-col overflow-y-auto p-4 sm:p-6 md:p-8 pb-24 md:pb-8">
         {/* Header */}
-        <header className="flex justify-between items-center mb-10">
-          <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Painel de Ganhos</h1>
-            <p className="text-slate-500 font-medium">Bem-vindo de volta, investidor.</p>
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-10">
+          <div className="flex items-center justify-between w-full sm:w-auto">
+            <div className="flex items-center gap-2 md:hidden">
+              <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
+                <Zap className="w-5 h-5 fill-current" />
+              </div>
+              <span className="text-xl font-black tracking-tighter italic">GanheMais</span>
+            </div>
+            <div className="hidden md:block">
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                {activeTab === 'painel' && 'Painel de Ganhos'}
+                {activeTab === 'carteira' && 'Minha Carteira'}
+                {activeTab === 'planos' && 'Planos de Upgrade'}
+                {activeTab === 'convites' && 'Indique e Ganhe'}
+              </h1>
+              <p className="text-slate-500 font-medium text-sm">Bem-vindo de volta, investidor.</p>
+            </div>
+            {/* Status indicator on mobile */}
+            <div className="md:hidden bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm shrink-0">
+              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800">3.842 Online</span>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
+          
+          {/* Title for active tab on mobile */}
+          <div className="md:hidden w-full bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm">
+            <h2 className="text-xl font-black text-slate-900 tracking-tight">
+              {activeTab === 'painel' && 'Painel de Ganhos'}
+              {activeTab === 'carteira' && 'Minha Carteira'}
+              {activeTab === 'planos' && 'Planos de Upgrade'}
+              {activeTab === 'convites' && 'Indique e Ganhe'}
+            </h2>
+            <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1 flex items-center gap-2">
+              Saldo: <span className="text-emerald-600">R$ {stats.balance.toFixed(2)}</span> • Plano: <span className="text-indigo-600">{stats.plan}</span>
+            </p>
+          </div>
+
+          {/* Online count for desktop */}
+          <div className="hidden md:flex items-center gap-4">
             <div className="bg-white border border-slate-200 px-4 py-2.5 rounded-full flex items-center gap-3 shadow-sm">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
               <span className="text-xs font-black uppercase tracking-widest text-slate-600">3.842 Online</span>
@@ -228,46 +284,48 @@ export default function HomePage() {
               className="space-y-8"
             >
               {/* Balance & Hero */}
-              <div className="grid grid-cols-12 gap-6">
-                <div className="col-span-8 bg-white border border-slate-200 rounded-[2.5rem] p-10 flex flex-col justify-between shadow-xl shadow-slate-200/40 border-b-4">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <div className="col-span-1 md:col-span-8 bg-white border border-slate-200 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 flex flex-col justify-between shadow-xl shadow-slate-200/40 border-b-4">
                   <div>
                     <p className="text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] mb-4">Saldo Disponível</p>
-                    <h2 className="text-7xl font-black tracking-tighter text-slate-900 flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-slate-300">R$</span>
+                    <h2 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter text-slate-900 flex items-baseline gap-2">
+                      <span className="text-xl font-bold text-slate-300">R$</span>
                       {stats.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </h2>
                   </div>
-                  <div className="flex gap-4 mt-12">
+                  <div className="flex flex-col sm:flex-row gap-3 mt-8 md:mt-12">
                     <button 
                       onClick={() => setActiveTab('carteira')}
-                      className="px-10 py-4 bg-emerald-500 text-white rounded-2xl font-black shadow-2xl shadow-emerald-200 hover:bg-emerald-600 transition-all flex items-center gap-3"
+                      className="px-6 md:px-10 py-4 bg-emerald-500 text-white rounded-2xl font-black shadow-lg hover:bg-emerald-600 transition-all flex items-center justify-center gap-3 cursor-pointer text-sm md:text-base"
                     >
                       SACAR VIA PIX <ArrowUpRight className="w-5 h-5" />
                     </button>
                     <button 
                       onClick={() => setActiveTab('carteira')}
-                      className="px-10 py-4 bg-slate-50 text-slate-600 border border-slate-200 rounded-2xl font-black hover:bg-slate-100 transition-all"
+                      className="px-6 md:px-10 py-4 bg-slate-50 text-slate-600 border border-slate-200 rounded-2xl font-black hover:bg-slate-100 transition-all cursor-pointer text-sm md:text-base"
                     >
                       EXTRATO
                     </button>
                   </div>
                 </div>
                 
-                <div className="col-span-4 bg-emerald-600 rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl shadow-emerald-100">
-                  <div className="relative z-10 h-full flex flex-col">
-                    <div className="bg-emerald-500 w-12 h-12 rounded-2xl flex items-center justify-center mb-6 shadow-xl">
-                      <Calendar className="w-6 h-6" />
+                <div className="col-span-1 md:col-span-4 bg-emerald-600 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 text-white relative overflow-hidden shadow-2xl shadow-emerald-100">
+                  <div className="relative z-10 h-full flex flex-col justify-between">
+                    <div>
+                      <div className="bg-emerald-500 w-12 h-12 rounded-2xl flex items-center justify-center mb-6 shadow-xl">
+                        <Calendar className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-xl md:text-2xl font-black mb-2 tracking-tight">Check-in</h3>
+                      <p className="text-emerald-100 text-xs md:text-sm mb-6 opacity-80 leading-relaxed font-medium">Bônus de R$ 2,00 liberado a cada 24 horas.</p>
                     </div>
-                    <h3 className="text-2xl font-black mb-2 tracking-tight">Check-in</h3>
-                    <p className="text-emerald-100 text-sm mb-auto opacity-80 leading-relaxed font-medium">Bônus de R$ 2,00 liberado a cada 24 horas.</p>
                     <motion.button 
                       whileHover={canCheckIn() ? { scale: 1.02 } : {}}
                       whileTap={canCheckIn() ? { scale: 0.98 } : {}}
                       disabled={!canCheckIn()}
                       onClick={handleDailyCheckIn}
-                      className={`w-full py-5 rounded-2xl font-black text-lg shadow-2xl transition-all ${
+                      className={`w-full py-4.5 rounded-2xl font-black text-sm md:text-lg shadow-2xl transition-all cursor-pointer ${
                         canCheckIn() 
-                          ? 'bg-white text-emerald-700 cursor-pointer shadow-white/20' 
+                          ? 'bg-white text-emerald-700 shadow-white/20' 
                           : 'bg-emerald-700/50 text-emerald-300/50 cursor-not-allowed shadow-none'
                       }`}
                     >
@@ -279,9 +337,9 @@ export default function HomePage() {
               </div>
 
               {/* Day Selector Journey */}
-              <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-md">
-                <h3 className="text-xl font-black text-slate-900 tracking-tight mb-2">Jornada de 20 Dias de Tarefas</h3>
-                <p className="text-sm font-medium text-slate-500 mb-6">Selecione o dia para realizar os seus desafios diários e resgatar suas recompensas.</p>
+              <div className="bg-white border border-slate-200 rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-8 shadow-md">
+                <h3 className="text-lg md:text-xl font-black text-slate-900 tracking-tight mb-2">Jornada de 20 Dias de Tarefas</h3>
+                <p className="text-xs md:text-sm font-medium text-slate-500 mb-6">Selecione o dia para realizar os seus desafios diários e resgatar suas recompensas.</p>
                 <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
                   {Array.from({ length: 20 }, (_, i) => {
                     const dayNum = i + 1;
@@ -366,7 +424,7 @@ export default function HomePage() {
 
               {/* Tasks Section / Lock Check */}
               {!isDayUnlocked(activeDay) ? (
-                <div className="bg-white border border-slate-200 rounded-[2.5rem] p-16 text-center shadow-md flex flex-col items-center max-w-xl mx-auto space-y-6 my-10 animate-fade-in">
+                <div className="bg-white border border-slate-200 rounded-[2rem] md:rounded-[2.5rem] p-6 sm:p-10 md:p-16 text-center shadow-md flex flex-col items-center max-w-xl mx-auto space-y-6 my-6 md:my-10 animate-fade-in">
                   <div className="w-20 h-20 bg-slate-100 border-2 border-slate-200 text-slate-400 rounded-full flex items-center justify-center shadow-inner">
                     <Lock className="w-10 h-10" />
                   </div>
@@ -444,21 +502,21 @@ export default function HomePage() {
               exit={{ opacity: 0, scale: 1.05 }}
               className="max-w-4xl mx-auto w-full space-y-8"
             >
-              <div className="bg-white border border-slate-200 rounded-[2.5rem] p-12 shadow-2xl border-b-8 border-b-emerald-500">
-                <div className="flex justify-between items-start mb-16">
+              <div className="bg-white border border-slate-200 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-2xl border-b-8 border-b-emerald-500">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8 md:mb-16">
                   <div>
-                    <p className="text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] mb-4">Total na Carteira</p>
-                    <h2 className="text-6xl font-black tracking-tighter text-slate-900">
+                    <p className="text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] mb-2 sm:mb-4">Total na Carteira</p>
+                    <h2 className="text-4xl sm:text-6xl font-black tracking-tighter text-slate-900">
                       R$ {stats.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </h2>
                   </div>
-                  <div className="text-right">
-                    <p className="text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] mb-4">Total Ganho</p>
+                  <div className="text-left sm:text-right w-full sm:w-auto pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                    <p className="text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] mb-2 sm:mb-4">Total Ganho</p>
                     <p className="text-2xl font-black text-emerald-600">R$ {stats.totalEarned.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                   <button 
                     onClick={() => {
                       if (stats.balance >= 20) {
@@ -468,16 +526,16 @@ export default function HomePage() {
                         triggerNotification('Saldo mínimo para saque: R$ 20,00');
                       }
                     }}
-                    className="flex items-center justify-center gap-4 bg-slate-900 text-white p-6 rounded-[2rem] font-black text-lg shadow-2xl hover:bg-slate-800 transition-all group"
+                    className="flex items-center justify-center gap-3 md:gap-4 bg-slate-900 text-white p-5 md:p-6 rounded-2xl md:rounded-[2rem] font-black text-base md:text-lg shadow-2xl hover:bg-slate-800 transition-all group cursor-pointer"
                   >
-                    <ArrowUpRight className="w-6 h-6 text-emerald-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                    <ArrowUpRight className="w-5 h-5 md:w-6 md:h-6 text-emerald-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform shrink-0" />
                     SACAR SALDO
                   </button>
                   <button 
                     onClick={() => handleOpenDeposit()}
-                    className="flex items-center justify-center gap-4 bg-emerald-50 text-emerald-700 border-2 border-emerald-100 p-6 rounded-[2rem] font-black text-lg shadow-xl hover:bg-emerald-100 transition-all group cursor-pointer"
+                    className="flex items-center justify-center gap-3 md:gap-4 bg-emerald-50 text-emerald-700 border-2 border-emerald-100 p-5 md:p-6 rounded-2xl md:rounded-[2rem] font-black text-base md:text-lg shadow-xl hover:bg-emerald-100 transition-all group cursor-pointer"
                   >
-                    <ArrowDownLeft className="w-6 h-6 text-emerald-600 group-hover:-translate-x-1 group-hover:translate-y-1 transition-transform" />
+                    <ArrowDownLeft className="w-5 h-5 md:w-6 md:h-6 text-emerald-600 group-hover:-translate-x-1 group-hover:translate-y-1 transition-transform shrink-0" />
                     DEPOSITAR
                   </button>
                 </div>
@@ -513,20 +571,20 @@ export default function HomePage() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-10"
             >
-              <div className="text-center max-w-2xl mx-auto mb-16">
-                <h2 className="text-4xl font-black tracking-tight text-slate-900 mb-4">Escolha seu Plano</h2>
-                <p className="text-slate-500 font-medium">Desbloqueie tarefas ilimitadas e multiplique seus ganhos diários agora mesmo.</p>
+              <div className="text-center max-w-2xl mx-auto mb-8 md:mb-16">
+                <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 mb-2 md:mb-4">Escolha seu Plano</h2>
+                <p className="text-sm md:text-base text-slate-500 font-medium px-4">Desbloqueie tarefas ilimitadas e multiplique seus ganhos diários agora mesmo.</p>
               </div>
 
-              <div className="grid grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                 {/* Basic Plan */}
-                <div className={`bg-white border-2 rounded-[2.5rem] p-10 flex flex-col relative transition-all ${stats.plan === 'Basic' ? 'border-emerald-500 shadow-2xl' : 'border-slate-100 opacity-80'}`}>
+                <div className={`bg-white border-2 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 flex flex-col relative transition-all ${stats.plan === 'Basic' ? 'border-emerald-500 shadow-2xl' : 'border-slate-100 opacity-80'}`}>
                   {stats.plan === 'Basic' && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-6 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">ATUAL</div>
                   )}
                   <h4 className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-2">Plano Grátis</h4>
-                  <p className="text-3xl font-black mb-8 text-slate-900 italic tracking-tighter">Básico</p>
-                  <ul className="space-y-4 mb-12 flex-1 text-sm font-medium text-slate-500">
+                  <p className="text-2xl md:text-3xl font-black mb-6 md:mb-8 text-slate-900 italic tracking-tighter">Básico</p>
+                  <ul className="space-y-4 mb-8 md:mb-12 flex-1 text-sm font-medium text-slate-500">
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500" /> 5 Tarefas por dia</li>
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500" /> Check-in R$ 2,00</li>
                     <li className="flex items-center gap-3 opacity-30"><Lock className="w-5 h-5" /> Saque sem prioridade</li>
@@ -535,16 +593,16 @@ export default function HomePage() {
                 </div>
 
                 {/* Silver Plan */}
-                <div className={`bg-white border-2 rounded-[2.5rem] p-10 flex flex-col relative transition-all shadow-xl ${stats.plan === 'Silver' ? 'border-emerald-500' : 'border-slate-100 hover:border-indigo-200'}`}>
+                <div className={`bg-white border-2 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 flex flex-col relative transition-all shadow-xl ${stats.plan === 'Silver' ? 'border-emerald-500' : 'border-slate-100 hover:border-indigo-200'}`}>
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-indigo-600 text-white px-6 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">POPULAR</div>
                   <h4 className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-2">Acesso Silver</h4>
-                  <p className="text-3xl font-black mb-1 text-slate-900 italic tracking-tighter">Premium</p>
-                  <div className="flex items-baseline gap-1 mb-8">
+                  <p className="text-2xl md:text-3xl font-black mb-1 text-slate-900 italic tracking-tighter">Premium</p>
+                  <div className="flex items-baseline gap-1 mb-6 md:mb-8">
                     <span className="text-xl font-bold">R$</span>
                     <span className="text-4xl font-black">29,90</span>
                     <span className="text-slate-400 text-xs font-bold leading-normal">/mês</span>
                   </div>
-                  <ul className="space-y-4 mb-12 flex-1 text-sm font-medium text-slate-600">
+                  <ul className="space-y-4 mb-8 md:mb-12 flex-1 text-sm font-medium text-slate-600">
                     <li className="flex items-center gap-3 font-bold"><CheckCircle2 className="w-5 h-5 text-indigo-500" /> 15 Tarefas por dia</li>
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-500" /> Check-in de R$ 5,00</li>
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-500" /> Saque priorizado</li>
@@ -558,15 +616,15 @@ export default function HomePage() {
                 </div>
 
                 {/* Gold Plan */}
-                <div className="bg-slate-900 rounded-[2.5rem] p-10 flex flex-col text-white shadow-2xl relative">
+                <div className="bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 flex flex-col text-white shadow-2xl relative">
                   <h4 className="text-amber-400 font-black text-[10px] uppercase tracking-widest mb-2">Poder Máximo</h4>
-                  <p className="text-3xl font-black mb-1 italic tracking-tighter text-amber-500 flex items-center gap-2">Elite <Star className="w-6 h-6 fill-amber-500" /></p>
-                  <div className="flex items-baseline gap-1 mb-8">
+                  <p className="text-2xl md:text-3xl font-black mb-1 italic tracking-tighter text-amber-500 flex items-center gap-2">Elite <Star className="w-6 h-6 fill-amber-500" /></p>
+                  <div className="flex items-baseline gap-1 mb-6 md:mb-8">
                     <span className="text-xl font-bold opacity-60">R$</span>
                     <span className="text-4xl font-black">97,00</span>
                     <span className="text-slate-500 text-xs font-bold leading-normal">/anual</span>
                   </div>
-                  <ul className="space-y-4 mb-12 flex-1 text-sm font-medium text-slate-300">
+                  <ul className="space-y-4 mb-8 md:mb-12 flex-1 text-sm font-medium text-slate-300">
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-400" /> Tarefas ILIMITADAS</li>
                     <li className="flex items-center gap-3 font-black text-emerald-400"><CheckCircle2 className="w-5 h-5" /> Bônus fixo de 20%</li>
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-400" /> Suporte 24h VIP</li>
@@ -590,36 +648,36 @@ export default function HomePage() {
               exit={{ opacity: 0, x: -20 }}
               className="max-w-4xl mx-auto w-full"
             >
-              <div className="bg-emerald-600 rounded-[3rem] p-16 text-white text-center relative overflow-hidden shadow-[0_40px_80px_rgba(16,185,129,0.2)]">
+              <div className="bg-emerald-600 rounded-[2rem] md:rounded-[3rem] p-6 sm:p-10 md:p-16 text-white text-center relative overflow-hidden shadow-[0_40px_80px_rgba(16,185,129,0.2)]">
                 <div className="relative z-10">
-                  <div className="w-24 h-24 bg-white/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 backdrop-blur-xl border border-white/20">
-                    <UserPlus className="w-10 h-10" />
+                  <div className="w-16 h-16 md:w-24 md:h-24 bg-white/10 rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center mx-auto mb-6 md:mb-8 backdrop-blur-xl border border-white/20">
+                    <UserPlus className="w-8 h-8 md:w-10 md:h-10" />
                   </div>
-                  <h2 className="text-5xl font-black tracking-tight mb-4">Ganhe R$ 2,00 na Hora!</h2>
-                  <p className="text-emerald-100 text-lg mb-12 max-w-md mx-auto font-medium leading-relaxed opacity-90">
+                  <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">Ganhe R$ 2,00 na Hora!</h2>
+                  <p className="text-emerald-100 text-sm md:text-lg mb-8 md:mb-12 max-w-md mx-auto font-medium leading-relaxed opacity-90">
                     Cada amigo que entrar pelo seu link você ganha dinheiro instantâneo no seu saldo disponível.
                   </p>
                   
-                  <div className="bg-white/10 p-2 rounded-3xl backdrop-blur-md max-w-md mx-auto flex items-center gap-2 border border-white/20">
-                    <div className="flex-1 px-6 font-bold text-sm overflow-hidden text-ellipsis whitespace-nowrap opacity-60">
+                  <div className="bg-white/10 p-1.5 sm:p-2 rounded-2xl sm:rounded-3xl backdrop-blur-md max-w-md mx-auto flex flex-col sm:flex-row items-center gap-2 border border-white/20">
+                    <div className="flex-1 px-4 py-2 sm:py-0 font-bold text-xs sm:text-sm overflow-hidden text-ellipsis whitespace-nowrap opacity-60">
                       ganhemais.app/ref/rodrigo123
                     </div>
                     <button 
                       onClick={copyRefLink}
-                      className="bg-white text-emerald-700 px-8 py-4 rounded-2xl font-black text-xs shadow-xl shadow-emerald-900/10 hover:bg-emerald-50 transition-all flex items-center gap-2"
+                      className="w-full sm:w-auto bg-white text-emerald-700 px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl font-black text-xs shadow-xl shadow-emerald-900/10 hover:bg-emerald-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Copy className="w-4 h-4" /> COPIAR LINK
                     </button>
                   </div>
 
-                  <div className="mt-16 flex items-center justify-center gap-12 pt-16 border-t border-white/10">
+                  <div className="mt-10 sm:mt-16 flex items-center justify-center gap-8 sm:gap-12 pt-10 sm:pt-16 border-t border-white/10">
                     <div className="text-center">
-                      <p className="text-4xl font-black mb-1">{stats.invites}</p>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-emerald-300">Amigos Concluidos</p>
+                      <p className="text-3xl sm:text-4xl font-black mb-1">{stats.invites}</p>
+                      <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-emerald-300">Amigos Concluidos</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-4xl font-black mb-1">R$ {(stats.invites * 2).toFixed(2)}</p>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-emerald-300">Total Ganho</p>
+                      <p className="text-3xl sm:text-4xl font-black mb-1">R$ {(stats.invites * 2).toFixed(2)}</p>
+                      <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-emerald-300">Total Ganho</p>
                     </div>
                   </div>
 

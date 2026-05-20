@@ -218,35 +218,35 @@ export default function HomePage() {
                   <YouTubeTask 
                     videoId="dQw4w9WgXcQ" 
                     reward={1.50} 
-                    title="Promoção Especial Tech" 
+                    title="Rick Astley - Never Gonna Give You Up (Official Music Video)" 
                     isCompleted={stats.completedTasks.includes("dQw4w9WgXcQ")}
                     onComplete={(reward) => handleTaskComplete("dQw4w9WgXcQ", reward)} 
                   />
                   <YouTubeTask 
                     videoId="jNQXAC9IVRw" 
                     reward={1.50} 
-                    title="Aprenda a Multiplicar" 
+                    title="Me at the zoo (Primeiro Vídeo do YouTube)" 
                     isCompleted={stats.completedTasks.includes("jNQXAC9IVRw")}
                     onComplete={(reward) => handleTaskComplete("jNQXAC9IVRw", reward)} 
                   />
                   <YouTubeTask 
                     videoId="M7lc1UVf-VE" 
                     reward={1.00} 
-                    title="Segredo Revelado" 
+                    title="YouTube Developers: Embedded Player Customization" 
                     isCompleted={stats.completedTasks.includes("M7lc1UVf-VE")}
                     onComplete={(reward) => handleTaskComplete("M7lc1UVf-VE", reward)} 
                   />
                   <YouTubeTask 
                     videoId="9bZkp7q19f0" 
                     reward={0.50} 
-                    title="Introdução aos Ganhos" 
+                    title="PSY - GANGNAM STYLE (강남스타일) M/V" 
                     isCompleted={stats.completedTasks.includes("9bZkp7q19f0")}
                     onComplete={(reward) => handleTaskComplete("9bZkp7q19f0", reward)} 
                   />
                   <YouTubeTask 
                     videoId="kJQP7kiw5Fk" 
                     reward={0.50} 
-                    title="Estratégias Financeiras" 
+                    title="Luis Fonsi - Despacito ft. Daddy Yankee" 
                     isCompleted={stats.completedTasks.includes("kJQP7kiw5Fk")}
                     onComplete={(reward) => handleTaskComplete("kJQP7kiw5Fk", reward)} 
                   />

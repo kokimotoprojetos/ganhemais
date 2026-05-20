@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import crypto from 'node:crypto';
+import crypto from 'crypto';
 
 // In-memory store to keep track of simulated transactions in development/sandbox mode
 declare global {
@@ -39,8 +39,8 @@ export async function POST(request: Request) {
 
     const safeEmail = email || `${name.toLowerCase().replace(/\s+/g, '')}@ganhemais.app`;
 
-    const apiKey = process.env.LYTRON_API_KEY;
-    const secretHash = process.env.LYTRON_SECRET_HASH;
+    const apiKey = process.env.LYTRON_API_KEY || '';
+    const secretHash = process.env.LYTRON_SECRET_HASH || '';
 
     // Check if we are in simulator / sandbox mode (missing or placeholder keys)
     const isMock = !apiKey || apiKey.includes('seu_') || !secretHash || secretHash.includes('seu_');

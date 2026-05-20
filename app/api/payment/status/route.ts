@@ -12,8 +12,8 @@ export async function GET(request: Request) {
       );
     }
 
-    const apiKey = process.env.LYTRON_API_KEY;
-    const secretHash = process.env.LYTRON_SECRET_HASH;
+    const apiKey = process.env.LYTRON_API_KEY || '';
+    const secretHash = process.env.LYTRON_SECRET_HASH || '';
     const isMock = !apiKey || apiKey.includes('seu_') || !secretHash || secretHash.includes('seu_');
 
     if (isMock) {
@@ -21,10 +21,13 @@ export async function GET(request: Request) {
       const charge = (globalThis as any).simulatedCharges?.get(txid);
 
       if (!charge) {
-        return NextResponse.json(
-          { code: 'NOT_FOUND', message: 'Transação simulada não encontrada.' },
-          { status: 404 }
-        );
+        // Fallback for stateless serverless environments where memory map might be cleared/different
+        return NextResponse.json({
+          txid,
+          status: 'pending',
+          amount: 30.00, // Safe default mock amount
+          isSimulated: true
+        }, { status: 200 });
       }
 
       return NextResponse.json({
@@ -86,6 +89,17 @@ export async function POST(request: Request) {
     const charge = (globalThis as any).simulatedCharges?.get(txid);
 
     if (!charge) {
+      if (txid.startsWith('sim_tx_')) {
+        // Fallback for stateless serverless environments: return success directly
+        return NextResponse.json({
+          success: true,
+          txid,
+          status,
+          amount: 30.00,
+          isSimulated: true
+        }, { status: 200 });
+      }
+
       return NextResponse.json(
         { code: 'NOT_FOUND', message: 'Transação simulada não encontrada para atualização.' },
         { status: 404 }

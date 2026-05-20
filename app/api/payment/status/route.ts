@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     const secretHash = process.env.LYTRON_SECRET_HASH || '';
     const isMock = !apiKey || apiKey.includes('seu_') || !secretHash || secretHash.includes('seu_');
 
-    if (isMock) {
+    if (isMock || txid.startsWith('sim_')) {
       // In simulation mode, always return pending for simulated transactions
       // The client-side simulation button handles the success transition directly
       return NextResponse.json({

@@ -41,6 +41,9 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
           if (prev <= 1) {
             clearInterval(timer);
             setIsFinished(true);
+            // Automatic claim when timer completes successfully
+            onComplete(reward);
+            setIsClaimed(true);
             return 0;
           }
           return prev - 1;
@@ -48,7 +51,7 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [isModalOpen, isPlaying, timeLeft, isFinished]);
+  }, [isModalOpen, isPlaying, timeLeft, isFinished, reward, onComplete]);
 
   const onReady: YouTubeProps['onReady'] = (event) => {
     playerRef.current = event.target;

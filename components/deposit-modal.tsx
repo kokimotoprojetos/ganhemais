@@ -203,39 +203,7 @@ export function DepositModal({ isOpen, onClose, onSuccess, predefinedAmount, pre
     setTimeout(() => setIsCopied(false), 2000);
   };
 
-  // Simulate Payment Success (Sandbox Override)
-  const handleSimulatePayment = async () => {
-    if (!paymentData) return;
 
-    try {
-      const response = await fetch('/api/payment/status', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          txid: paymentData.txid,
-          status: 'paid'
-        })
-      });
-
-      if (response.ok) {
-        stopPolling();
-        setStep('success');
-        onSuccess(paymentData.amount, predefinedPlan || undefined);
-      } else {
-        console.warn('Simulation API returned an error, applying robust client-side fallback.');
-        stopPolling();
-        setStep('success');
-        onSuccess(paymentData.amount, predefinedPlan || undefined);
-      }
-    } catch (err) {
-      console.error('Simulation payment error, applying robust client-side fallback:', err);
-      stopPolling();
-      setStep('success');
-      onSuccess(paymentData.amount, predefinedPlan || undefined);
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -489,20 +457,6 @@ export function DepositModal({ isOpen, onClose, onSuccess, predefinedAmount, pre
                 <span>Aguardando transferência bancária em tempo real...</span>
               </div>
 
-              {/* SANDBOX TEST SIMULATOR ACTION */}
-              {paymentData.isSimulated && (
-                <div className="w-full border-t border-dashed border-slate-200 pt-5 mt-4 space-y-2">
-                  <div className="inline-flex items-center gap-1 text-[10px] font-black tracking-wider uppercase text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1 rounded-full">
-                    <Zap className="w-3 h-3 fill-amber-500 text-amber-500" /> Modo de Testes Ativo
-                  </div>
-                  <button
-                    onClick={handleSimulatePayment}
-                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-sm py-4 rounded-2xl shadow-xl shadow-amber-200 hover:from-amber-600 hover:to-orange-600 transition-all scale-100 hover:scale-[1.01] active:scale-[0.99]"
-                  >
-                    SIMULAR PAGAMENTO COM SUCESSO
-                  </button>
-                </div>
-              )}
             </div>
           )}
 

@@ -133,7 +133,6 @@ export function PibTasks({ completedTasks, onComplete }: PibTasksProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
-  const [score, setScore] = useState(0);
   const [showVictory, setShowVictory] = useState(false);
 
   const startTask = (task: PibTaskData) => {
@@ -141,7 +140,6 @@ export function PibTasks({ completedTasks, onComplete }: PibTasksProps) {
     setCurrentQuestionIndex(0);
     setSelectedOptionIndex(null);
     setIsAnswered(false);
-    setScore(0);
     setShowVictory(false);
   };
 
@@ -149,10 +147,6 @@ export function PibTasks({ completedTasks, onComplete }: PibTasksProps) {
     if (isAnswered) return;
     setSelectedOptionIndex(index);
     setIsAnswered(true);
-
-    if (index === activeTask!.questions[currentQuestionIndex].correctIndex) {
-      setScore((prev) => prev + 1);
-    }
   };
 
   const handleNext = () => {
@@ -297,15 +291,12 @@ export function PibTasks({ completedTasks, onComplete }: PibTasksProps) {
                       {/* Options Grid */}
                       <div className="space-y-3 mt-6">
                         {activeTask.questions[currentQuestionIndex].options.map((option, idx) => {
-                          const isCorrectOption = idx === activeTask.questions[currentQuestionIndex].correctIndex;
                           const isSelected = idx === selectedOptionIndex;
                           
                           let btnStyle = "bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800 hover:border-slate-700";
                           if (isAnswered) {
-                            if (isCorrectOption) {
+                            if (isSelected) {
                               btnStyle = "bg-emerald-500/20 border-emerald-500/50 text-emerald-300";
-                            } else if (isSelected) {
-                              btnStyle = "bg-red-500/20 border-red-500/50 text-red-300";
                             } else {
                               btnStyle = "bg-slate-950/20 border-slate-900 text-slate-600 opacity-60";
                             }
@@ -319,11 +310,8 @@ export function PibTasks({ completedTasks, onComplete }: PibTasksProps) {
                               className={`w-full p-4 rounded-2xl border text-left text-sm font-bold transition-all flex items-center justify-between ${btnStyle}`}
                             >
                               <span className="leading-snug">{option}</span>
-                              {isAnswered && isCorrectOption && (
-                                <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-md font-black shrink-0 ml-2">CORRETA</span>
-                              )}
-                              {isAnswered && isSelected && !isCorrectOption && (
-                                <span className="text-[10px] bg-red-500/20 text-red-400 px-2.5 py-1 rounded-md font-black shrink-0 ml-2">SUA RESPOSTA</span>
+                              {isAnswered && isSelected && (
+                                <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-md font-black shrink-0 ml-2">SELECIONADO</span>
                               )}
                             </button>
                           );
@@ -340,7 +328,7 @@ export function PibTasks({ completedTasks, onComplete }: PibTasksProps) {
                           exit={{ height: 0, opacity: 0 }}
                           className="bg-slate-950/60 border border-slate-800 rounded-2xl p-5 mb-8 overflow-hidden"
                         >
-                          <p className="text-xs font-black tracking-widest text-emerald-400 uppercase mb-2">💡 EXPLICAÇÃO ECONÔMICA</p>
+                          <p className="text-xs font-black tracking-widest text-emerald-400 uppercase mb-2">💡 INFORMAÇÃO COMPLEMENTAR</p>
                           <p className="text-slate-300 text-xs font-medium leading-relaxed">
                             {activeTask.questions[currentQuestionIndex].explanation}
                           </p>

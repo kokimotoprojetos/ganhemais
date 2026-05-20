@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Wallet, 
@@ -19,9 +19,11 @@ import {
   Copy,
   Star,
   Zap,
-  Lock
+  Lock,
+  LogOut
 } from 'lucide-react';
 import { useEarnings } from '@/hooks/use-earnings';
+import { AuthScreen } from '@/components/auth-screen';
 import { YouTubeTask } from '@/components/youtube-task';
 import { PibTasks } from '@/components/pib-tasks';
 import { BookOpen } from 'lucide-react';
@@ -32,9 +34,10 @@ import { YOUTUBE_VIDEOS, PIB_TASKS } from '@/lib/tasks-data';
 type Tab = 'painel' | 'carteira' | 'planos' | 'convites';
 
 export default function HomePage() {
-  const { stats, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, upgradePlan, deposit } = useEarnings();
+  const { stats, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, upgradePlan, deposit, isAuthenticated, logout } = useEarnings();
   const [activeTab, setActiveTab] = useState<Tab>('painel');
   const [showNotification, setShowNotification] = useState<string | null>(null);
+  const [pendingRef, setPendingRef] = useState<string | null>(null);
   const [activeDay, setActiveDay] = useState<number>(() => {
     if (typeof window !== 'undefined') {
       const savedDay = localStorage.getItem('ganhemais_active_day');
@@ -51,6 +54,30 @@ export default function HomePage() {
     if (typeof window !== 'undefined') {
       localStorage.setItem('ganhemais_active_day', day.toString());
     }
+  };
+
+  // Capture referral code on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const ref = urlParams.get('ref');
+      if (ref) {
+        localStorage.setItem('ganhemais_pending_ref', ref);
+        setPendingRef(ref);
+      } else {
+        const savedRef = localStorage.getItem('ganhemais_pending_ref');
+        if (savedRef) {
+          setPendingRef(savedRef);
+        }
+      }
+    }
+  }, []);
+
+  const handleAuthSuccess = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('ganhemais_pending_ref');
+    }
+    setPendingRef(null);
   };
 
   const isDayUnlocked = useCallback((dayNum: number): boolean => {
@@ -80,22 +107,22 @@ export default function HomePage() {
     setIsDepositModalOpen(true);
   };
 
-  const handleDepositSuccess = (amount: number, plan?: 'Silver' | 'Gold') => {
+  const handleDepositSuccess = async (amount: number, plan?: 'Silver' | 'Gold') => {
     if (plan) {
-      upgradePlan(plan);
+      await upgradePlan(plan);
       triggerNotification(`Parabéns! Plano ${plan} assinado com sucesso via Pix!`);
     } else {
-      deposit(amount);
+      await deposit(amount);
       triggerNotification(`Depósito de R$ ${amount.toFixed(2)} confirmado!`);
     }
   };
 
-  const handleSubscribePlan = (plan: 'Silver' | 'Gold', price: number) => {
+  const handleSubscribePlan = async (plan: 'Silver' | 'Gold', price: number) => {
     if (stats.balance >= price) {
       const confirmPurchase = window.confirm(`Você possui R$ ${stats.balance.toFixed(2)} de saldo. Deseja assinar o plano ${plan} usando R$ ${price.toFixed(2)} do seu saldo de carteira?`);
       if (confirmPurchase) {
-        withdraw(price);
-        upgradePlan(plan);
+        await withdraw(price);
+        await upgradePlan(plan);
         triggerNotification(`Assinatura do plano ${plan} ativada usando seu saldo!`);
       } else {
         handleOpenDeposit(price, plan);
@@ -111,45 +138,62 @@ export default function HomePage() {
     setTimeout(() => setShowNotification(null), 3000);
   }, []);
 
-  const handleDailyCheckIn = () => {
-    if (dailyCheckIn()) {
-      triggerNotification('Recompensa de R$ 2,00 coletada!');
+  const handleDailyCheckIn = async () => {
+    if (await dailyCheckIn()) {
+      triggerNotification('Recompensa coletada!');
     } else {
       triggerNotification('Check-in já realizado hoje.');
     }
   };
 
-  const handleTaskComplete = (taskIdOrReward: string | number, reward?: number) => {
+  const handleTaskComplete = async (taskIdOrReward: string | number, reward?: number) => {
     if (typeof taskIdOrReward === 'string') {
       const actualReward = reward || 0;
-      if (completeTask(taskIdOrReward, actualReward)) {
+      if (await completeTask(taskIdOrReward, actualReward)) {
         triggerNotification(`R$ ${actualReward.toFixed(2)} adicionados ao seu saldo!`);
       }
     } else {
-      addEarning(taskIdOrReward);
+      await addEarning(taskIdOrReward);
       triggerNotification(`R$ ${taskIdOrReward.toFixed(2)} adicionados ao seu saldo!`);
     }
   };
 
-  const handleInvite = () => {
-    inviteUser();
+  const handleInvite = async () => {
+    await inviteUser();
     triggerNotification('Novo convite simulado: +R$ 2,00!');
   };
 
   const copyRefLink = () => {
-    navigator.clipboard.writeText(`https://ganhemais.app/ref/rodrigo123`);
+    const refCode = stats.referralCode || 'codigo';
+    const link = typeof window !== 'undefined' ? `${window.location.origin}/?ref=${refCode}` : `https://ganhemais.app/?ref=${refCode}`;
+    navigator.clipboard.writeText(link);
     triggerNotification('Link de convite copiado!');
   };
 
   if (isLoading) return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <motion.div 
-        animate={{ rotate: 360 }}
-        transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-        className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full"
-      />
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center relative overflow-hidden">
+      {/* Decorative background glow */}
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-emerald-500 rounded-full opacity-20 blur-[100px] pointer-events-none"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500 rounded-full opacity-15 blur-[120px] pointer-events-none"></div>
+      <div className="z-10 flex flex-col items-center gap-4">
+        <motion.div 
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+          className="w-14 h-14 border-4 border-slate-800 border-t-emerald-500 rounded-full shadow-2xl"
+        />
+        <p className="text-slate-400 text-xs font-black tracking-widest uppercase animate-pulse">Carregando dados...</p>
+      </div>
     </div>
   );
+
+  if (!isAuthenticated) {
+    return (
+      <AuthScreen 
+        pendingRef={pendingRef} 
+        onAuthSuccess={handleAuthSuccess} 
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900 overflow-hidden">
@@ -185,7 +229,7 @@ export default function HomePage() {
           </nav>
         </div>
         
-        <div className="mt-auto p-8">
+        <div className="mt-auto p-8 flex flex-col gap-4">
           <div className="bg-slate-900 text-white rounded-2xl p-5 shadow-2xl">
             <p className="text-[10px] text-slate-400 mb-1 uppercase tracking-widest font-black">Nível {stats.plan}</p>
             <p className="text-xs font-medium opacity-80 mb-3">
@@ -199,6 +243,13 @@ export default function HomePage() {
               />
             </div>
           </div>
+          <button
+            onClick={logout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-red-500 hover:bg-red-50 hover:text-red-600 transition-all cursor-pointer"
+          >
+            <LogOut className="w-5 h-5 text-red-500" />
+            Sair da Conta
+          </button>
         </div>
       </aside>
 
@@ -245,10 +296,19 @@ export default function HomePage() {
               </h1>
               <p className="text-slate-500 font-medium text-sm">Bem-vindo de volta, investidor.</p>
             </div>
-            {/* Status indicator on mobile */}
-            <div className="md:hidden bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm shrink-0">
-              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800">3.842 Online</span>
+            {/* Status indicator and Logout on mobile */}
+            <div className="md:hidden flex items-center gap-2 shrink-0">
+              <div className="bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
+                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800">3.842 Online</span>
+              </div>
+              <button 
+                onClick={logout}
+                className="w-8 h-8 bg-red-50 hover:bg-red-100 text-red-500 border border-red-100 rounded-full flex items-center justify-center shadow-sm cursor-pointer transition-colors"
+                title="Sair"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           </div>
           
@@ -265,12 +325,19 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Online count for desktop */}
+          {/* Online count and Logout for desktop */}
           <div className="hidden md:flex items-center gap-4">
             <div className="bg-white border border-slate-200 px-4 py-2.5 rounded-full flex items-center gap-3 shadow-sm">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
               <span className="text-xs font-black uppercase tracking-widest text-slate-600">3.842 Online</span>
             </div>
+            <button 
+              onClick={logout}
+              className="flex items-center gap-2 bg-white hover:bg-red-50 text-slate-600 hover:text-red-600 border border-slate-200 hover:border-red-200 px-4 py-2.5 rounded-full text-xs font-black transition-all cursor-pointer shadow-sm"
+            >
+              <LogOut className="w-4 h-4 text-red-500" />
+              SAIR
+            </button>
           </div>
         </header>
 
@@ -659,8 +726,8 @@ export default function HomePage() {
                   </p>
                   
                   <div className="bg-white/10 p-1.5 sm:p-2 rounded-2xl sm:rounded-3xl backdrop-blur-md max-w-md mx-auto flex flex-col sm:flex-row items-center gap-2 border border-white/20">
-                    <div className="flex-1 px-4 py-2 sm:py-0 font-bold text-xs sm:text-sm overflow-hidden text-ellipsis whitespace-nowrap opacity-60">
-                      ganhemais.app/ref/rodrigo123
+                    <div className="flex-1 px-4 py-2 sm:py-0 font-bold text-xs sm:text-sm overflow-hidden text-ellipsis whitespace-nowrap opacity-80">
+                      {typeof window !== 'undefined' ? `${window.location.host}/?ref=${stats.referralCode || ''}` : `ganhemais.app/?ref=${stats.referralCode || ''}`}
                     </div>
                     <button 
                       onClick={copyRefLink}

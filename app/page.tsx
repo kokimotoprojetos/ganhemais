@@ -23,11 +23,14 @@ import {
 } from 'lucide-react';
 import { useEarnings } from '@/hooks/use-earnings';
 import { YouTubeTask } from '@/components/youtube-task';
+import { PibTasks } from '@/components/pib-tasks';
+import { BookOpen } from 'lucide-react';
+
 
 type Tab = 'painel' | 'carteira' | 'planos' | 'convites';
 
 export default function HomePage() {
-  const { stats, addEarning, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, upgradePlan } = useEarnings();
+  const { stats, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, upgradePlan } = useEarnings();
   const [activeTab, setActiveTab] = useState<Tab>('painel');
   const [showNotification, setShowNotification] = useState<string | null>(null);
 
@@ -44,9 +47,16 @@ export default function HomePage() {
     }
   };
 
-  const handleTaskComplete = (reward: number) => {
-    addEarning(reward);
-    triggerNotification(`R$ ${reward.toFixed(2)} adicionados ao seu saldo!`);
+  const handleTaskComplete = (taskIdOrReward: string | number, reward?: number) => {
+    if (typeof taskIdOrReward === 'string') {
+      const actualReward = reward || 0;
+      if (completeTask(taskIdOrReward, actualReward)) {
+        triggerNotification(`R$ ${actualReward.toFixed(2)} adicionados ao seu saldo!`);
+      }
+    } else {
+      addEarning(taskIdOrReward);
+      triggerNotification(`R$ ${taskIdOrReward.toFixed(2)} adicionados ao seu saldo!`);
+    }
   };
 
   const handleInvite = () => {
@@ -201,7 +211,7 @@ export default function HomePage() {
                 <div className="flex justify-between items-end mb-6">
                   <h3 className="text-xl font-black text-slate-900 tracking-tight">Vídeos do Dia</h3>
                   <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-black">
-                    <Zap className="w-3.5 h-3.5 fill-current" /> {stats.plan === 'Basic' ? '3 tarefas restantes' : 'Ilimitado'}
+                    <Zap className="w-3.5 h-3.5 fill-current" /> {stats.plan === 'Basic' ? `${Math.max(0, 3 - stats.completedTasks.length)} tarefas restantes` : 'Ilimitado'}
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-8">
@@ -209,13 +219,15 @@ export default function HomePage() {
                     videoId="dQw4w9WgXcQ" 
                     reward={0.50} 
                     title="Promoção Tech" 
-                    onComplete={handleTaskComplete} 
+                    isCompleted={stats.completedTasks.includes("dQw4w9WgXcQ")}
+                    onComplete={(reward) => handleTaskComplete("dQw4w9WgXcQ", reward)} 
                   />
                   <YouTubeTask 
                     videoId="jNQXAC9IVRw" 
                     reward={0.75} 
                     title="Review Investimento" 
-                    onComplete={handleTaskComplete} 
+                    isCompleted={stats.completedTasks.includes("jNQXAC9IVRw")}
+                    onComplete={(reward) => handleTaskComplete("jNQXAC9IVRw", reward)} 
                   />
                   {stats.plan === 'Basic' ? (
                     <div className="bg-slate-100 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center p-8 text-center gap-3">
@@ -238,10 +250,28 @@ export default function HomePage() {
                       videoId="M7lc1UVf-VE" 
                       reward={1.50} 
                       title="Aula Especial VIP" 
-                      onComplete={handleTaskComplete} 
+                      isCompleted={stats.completedTasks.includes("M7lc1UVf-VE")}
+                      onComplete={(reward) => handleTaskComplete("M7lc1UVf-VE", reward)} 
                     />
                   )}
                 </div>
+              </div>
+
+              {/* PIB & Economics Tasks */}
+              <div className="pt-4">
+                <div className="flex justify-between items-end mb-6">
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Desafios de PIB & Economia Real</h3>
+                    <p className="text-sm font-medium text-slate-500 mt-1">Responda a perguntas econômicas e ganhe por responder pesquisas reais.</p>
+                  </div>
+                  <div className="flex items-center gap-2 text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg text-xs font-black">
+                    <BookOpen className="w-3.5 h-3.5" /> 100% Educativo
+                  </div>
+                </div>
+                <PibTasks 
+                  completedTasks={stats.completedTasks} 
+                  onComplete={handleTaskComplete} 
+                />
               </div>
             </motion.div>
           )}

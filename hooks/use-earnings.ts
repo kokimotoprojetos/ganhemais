@@ -9,28 +9,37 @@ export interface UserStats {
   tasksCompleted: number;
   invites: number;
   plan: 'Basic' | 'Silver' | 'Gold';
+  completedTasks: string[];
 }
 
 export function useEarnings() {
   const [stats, setStats] = useState<UserStats>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('ganhemais_stats');
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch (e) {
-          console.error('Failed to load stats', e);
-        }
-      }
-    }
-    return {
+    const defaultStats: UserStats = {
       balance: 0,
       totalEarned: 0,
       lastCheckIn: null,
       tasksCompleted: 0,
       invites: 0,
       plan: 'Basic',
+      completedTasks: [],
     };
+
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('ganhemais_stats');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          return {
+            ...defaultStats,
+            ...parsed,
+            completedTasks: parsed.completedTasks || [],
+          };
+        } catch (e) {
+          console.error('Failed to load stats', e);
+        }
+      }
+    }
+    return defaultStats;
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -54,6 +63,18 @@ export function useEarnings() {
       totalEarned: prev.totalEarned + amount,
       tasksCompleted: prev.tasksCompleted + 1,
     }));
+  };
+
+  const completeTask = (taskId: string, reward: number) => {
+    if (stats.completedTasks.includes(taskId)) return false;
+    setStats(prev => ({
+      ...prev,
+      balance: prev.balance + reward,
+      totalEarned: prev.totalEarned + reward,
+      tasksCompleted: prev.tasksCompleted + 1,
+      completedTasks: [...prev.completedTasks, taskId],
+    }));
+    return true;
   };
 
   const inviteUser = () => {
@@ -102,6 +123,7 @@ export function useEarnings() {
   return {
     stats,
     addEarning,
+    completeTask,
     dailyCheckIn,
     canCheckIn,
     inviteUser,

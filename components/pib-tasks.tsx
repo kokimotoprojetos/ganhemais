@@ -4,131 +4,15 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BookOpen, Award, CheckCircle2, ArrowRight, X, HelpCircle, ShieldAlert, Sparkles } from 'lucide-react';
 
-interface Question {
-  questionText: string;
-  options: string[];
-  correctIndex: number;
-  explanation: string;
-}
-
-interface PibTaskData {
-  id: string;
-  title: string;
-  description: string;
-  reward: number;
-  questions: Question[];
-}
-
-const PIB_TASKS: PibTaskData[] = [
-  {
-    id: 'pib-intro',
-    title: 'Desafio 1: O Gigante PIB Brasileiro',
-    description: 'Entenda o que é o PIB (Produto Interno Bruto) e qual a real posição do Brasil na economia global.',
-    reward: 3.50,
-    questions: [
-      {
-        questionText: 'O que exatamente é medido através do PIB (Produto Interno Bruto)?',
-        options: [
-          'Apenas o lucro líquido de todas as empresas estatais.',
-          'A soma de todos os bens e serviços finais produzidos no país em um determinado período.',
-          'O total de dinheiro poupado pelos cidadãos nas cadernetas de poupança.',
-          'A quantidade de dinheiro impresso pela Casa da Moeda.'
-        ],
-        correctIndex: 1,
-        explanation: 'O PIB mede toda a riqueza produzida dentro do território nacional: de salários e pães na padaria a serviços de tecnologia de ponta e carros produzidos. Só entram bens e serviços finais para evitar dupla contagem.'
-      },
-      {
-        questionText: 'Por que o cálculo do PIB considera apenas bens e "serviços finais"?',
-        options: [
-          'Para agilizar a burocracia e fechar a contabilidade no prazo.',
-          'Porque os serviços intermediários não possuem valor econômico.',
-          'Para evitar a chamada "dupla contagem" de matérias-primas ao longo do processo produtivo.',
-          'Porque a Vercel e o governo não conseguem rastrear compras menores.'
-        ],
-        correctIndex: 2,
-        explanation: 'Se contássemos o trigo vendido ao moinho, a farinha vendida ao padeiro e o pão vendido ao cliente final, estaríamos contando o trigo três vezes. Contar apenas o pão final resolve isso!'
-      },
-      {
-        questionText: 'Atualmente, o PIB do Brasil posiciona o país em qual faixa no ranking das maiores economias do mundo?',
-        options: [
-          'Fora das 50 maiores economias globais.',
-          'Entre as 10 maiores economias do planeta (Top 10).',
-          'Líder absoluto mundial à frente dos EUA e da China.',
-          'Na 30ª colocação mundial.'
-        ],
-        correctIndex: 1,
-        explanation: 'O PIB do Brasil costuma figurar entre o 8º e o 10º lugar no ranking mundial, com um PIB nominal na faixa de R$ 10,9 trilhões, consolidando-se como a maior economia da América Latina.'
-      }
-    ]
-  },
-  {
-    id: 'pib-setores',
-    title: 'Desafio 2: Os Motores do Nosso PIB',
-    description: 'Descubra a força de cada setor econômico: qual deles gera mais empregos e riqueza no Brasil?',
-    reward: 4.50,
-    questions: [
-      {
-        questionText: 'Qual dos três setores econômicos é responsável por mais de 70% do PIB brasileiro?',
-        options: [
-          'O setor Agropecuário (agricultura e pecuária).',
-          'O setor Industrial (fábricas e construção civil).',
-          'O setor de Serviços e Comércio (bancos, tecnologia, turismo e varejo).',
-          'O setor extrativista mineral puro.'
-        ],
-        correctIndex: 2,
-        explanation: 'Embora o Agro seja fortíssimo para exportações, o setor de Serviços e Comércio representa a imensa maioria do PIB brasileiro (cerca de 70%), sendo o maior empregador do país.'
-      },
-      {
-        questionText: 'Embora represente cerca de 7% a 8% do PIB direto, qual setor é vital para a balança comercial brasileira pelas volumosas exportações de grãos e carnes?',
-        options: [
-          'Serviços de Turismo.',
-          'Agropecuária.',
-          'Indústria Automotiva.',
-          'Indústria Têxtil.'
-        ],
-        correctIndex: 1,
-        explanation: 'A Agropecuária brasileira é de alta produtividade global, fornecendo alimentos para bilhões de pessoas e sendo o principal motor do superávit na balança comercial do país.'
-      }
-    ]
-  },
-  {
-    id: 'pib-calculo',
-    title: 'Desafio 3: PIB per Capita e Inflação',
-    description: 'Entenda como a inflação afeta o PIB real e o conceito de PIB per Capita na distribuição da riqueza.',
-    reward: 5.50,
-    questions: [
-      {
-        questionText: 'O que representa o conceito de "PIB per Capita"?',
-        options: [
-          'O PIB total dividido pela quantidade de empresas ativas.',
-          'O PIB total dividido pelo número de habitantes do país.',
-          'O imposto pago por cabeça em cada transação financeira.',
-          'O teto de gastos imposto pelo Ministério da Fazenda.'
-        ],
-        correctIndex: 1,
-        explanation: 'O PIB per Capita é uma média matemática obtida dividindo o PIB total pela população. Embora útil para comparações internacionais, ele não reflete sozinho a real desigualdade social e distribuição de renda.'
-      },
-      {
-        questionText: 'Qual a diferença crucial entre "PIB Nominal" e "PIB Real"?',
-        options: [
-          'O PIB Nominal é uma estimativa e o Real é o valor exato verificado em cartório.',
-          'O PIB Real desconta o efeito da Inflação do período, enquanto o Nominal usa os preços correntes.',
-          'O PIB Nominal só calcula transações digitais, e o Real calcula transações físicas.',
-          'Não há diferença; são termos idênticos criados por economistas.'
-        ],
-        correctIndex: 1,
-        explanation: 'Se os preços dobrarem devido à inflação alta, mas a produção física continuar igual, o PIB Nominal dobrará ilusoriamente. O PIB Real ajusta e remove essa inflação para ver o crescimento econômico genuíno.'
-      }
-    ]
-  }
-];
+import { PIB_TASKS, PibTaskData } from '@/lib/tasks-data';
 
 interface PibTasksProps {
   completedTasks: string[];
   onComplete: (taskId: string, reward: number) => void;
+  activeDay: number;
 }
 
-export function PibTasks({ completedTasks, onComplete }: PibTasksProps) {
+export function PibTasks({ completedTasks, onComplete, activeDay }: PibTasksProps) {
   const [activeTask, setActiveTask] = useState<PibTaskData | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
@@ -169,7 +53,7 @@ export function PibTasks({ completedTasks, onComplete }: PibTasksProps) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {PIB_TASKS.map((task) => {
+        {PIB_TASKS.filter(task => task.day === activeDay).map((task) => {
           const isDone = completedTasks.includes(task.id);
           
           return (

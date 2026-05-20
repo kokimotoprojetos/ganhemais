@@ -26,6 +26,7 @@ import { YouTubeTask } from '@/components/youtube-task';
 import { PibTasks } from '@/components/pib-tasks';
 import { BookOpen } from 'lucide-react';
 import { DepositModal } from '@/components/deposit-modal';
+import { YOUTUBE_VIDEOS, PIB_TASKS } from '@/lib/tasks-data';
 
 
 type Tab = 'painel' | 'carteira' | 'planos' | 'convites';
@@ -34,6 +35,23 @@ export default function HomePage() {
   const { stats, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, upgradePlan, deposit } = useEarnings();
   const [activeTab, setActiveTab] = useState<Tab>('painel');
   const [showNotification, setShowNotification] = useState<string | null>(null);
+  const [activeDay, setActiveDay] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const savedDay = localStorage.getItem('ganhemais_active_day');
+      if (savedDay) {
+        const parsed = parseInt(savedDay);
+        if (parsed >= 1 && parsed <= 20) return parsed;
+      }
+    }
+    return (new Date().getDate() - 1) % 20 + 1;
+  });
+
+  const handleSetActiveDay = (day: number) => {
+    setActiveDay(day);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ganhemais_active_day', day.toString());
+    }
+  };
 
   // States for deposit / subscription modal
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
@@ -244,50 +262,112 @@ export default function HomePage() {
                 </div>
               </div>
 
+              {/* Day Selector Journey */}
+              <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-md">
+                <h3 className="text-xl font-black text-slate-900 tracking-tight mb-2">Jornada de 20 Dias de Tarefas</h3>
+                <p className="text-sm font-medium text-slate-500 mb-6">Selecione o dia para realizar os seus desafios diários e resgatar suas recompensas.</p>
+                <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+                  {Array.from({ length: 20 }, (_, i) => {
+                    const dayNum = i + 1;
+                    const isSelected = activeDay === dayNum;
+                    const todayDayNum = (new Date().getDate() - 1) % 20 + 1;
+                    const isToday = todayDayNum === dayNum;
+                    
+                    // Progress calculations
+                    const dayVideos = YOUTUBE_VIDEOS.filter(v => v.day === dayNum);
+                    const dayPib = PIB_TASKS.find(p => p.day === dayNum);
+                    const completedDayVideos = dayVideos.filter(v => stats.completedTasks.includes(v.id)).length;
+                    const completedDayPib = dayPib && stats.completedTasks.includes(dayPib.id) ? 1 : 0;
+                    const totalDone = completedDayVideos + completedDayPib;
+                    const totalTasks = dayVideos.length + (dayPib ? 1 : 0);
+                    const isFullyCompleted = totalDone === totalTasks;
+
+                    let btnStyle = "border-slate-100 bg-white text-slate-700 hover:border-slate-300";
+                    if (isSelected) {
+                      btnStyle = "border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20";
+                    } else if (isFullyCompleted) {
+                      btnStyle = "border-emerald-500/30 bg-emerald-50/50 text-emerald-700";
+                    }
+
+                    return (
+                      <button
+                        key={dayNum}
+                        onClick={() => handleSetActiveDay(dayNum)}
+                        className={`px-5 py-3.5 rounded-[2.5rem] border-2 font-black text-sm transition-all shrink-0 flex flex-col items-center gap-1 min-w-[105px] cursor-pointer ${btnStyle}`}
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Dia {dayNum}</span>
+                          {isToday && (
+                            <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-white text-emerald-600' : 'bg-emerald-500 text-white animate-pulse'}`}>HOJE</span>
+                          )}
+                        </div>
+                        <span className={`text-[9px] font-bold ${isSelected ? 'text-emerald-100' : 'text-slate-400'}`}>
+                          {totalDone}/{totalTasks} Concluído
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Limit Banner */}
+              {(() => {
+                const today = new Date().toDateString();
+                const completedToday = stats.lastTaskDate === today ? (stats.completedTodayCount || 0) : 0;
+                const maxTasks = stats.plan === 'Basic' ? 5 : stats.plan === 'Silver' ? 15 : Infinity;
+                const remainingTasks = maxTasks - completedToday;
+
+                if (stats.plan !== 'Gold' && remainingTasks <= 0) {
+                  return (
+                    <div className="bg-amber-500/10 border-2 border-amber-500/20 rounded-[2.5rem] p-6 text-amber-800 flex flex-col sm:flex-row items-center justify-between shadow-sm gap-4 animate-bounce">
+                      <div className="flex gap-4 items-center">
+                        <div className="p-3 bg-amber-500 text-white rounded-2xl shrink-0">
+                          <Zap className="w-6 h-6 fill-current" />
+                        </div>
+                        <div>
+                          <h4 className="font-black text-slate-800">Limite Diário de Tarefas Atingido</h4>
+                          <p className="text-sm font-medium text-slate-600 leading-normal mt-0.5">
+                            Você já concluiu o limite diário de {maxTasks} tarefas do plano {stats.plan === 'Basic' ? 'Básico' : 'Silver'}.
+                          </p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => setActiveTab('planos')}
+                        className="px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-black rounded-xl transition-all cursor-pointer whitespace-nowrap"
+                      >
+                        FAZER UPGRADE AGORA
+                      </button>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               {/* Tasks Section */}
               <div>
                 <div className="flex justify-between items-end mb-6">
                   <h3 className="text-xl font-black text-slate-900 tracking-tight">Vídeos do Dia</h3>
                   <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-black">
-                    <Zap className="w-3.5 h-3.5 fill-current" /> {stats.plan === 'Basic' ? `${Math.max(0, 5 - stats.completedTasks.filter(id => ['dQw4w9WgXcQ', 'jNQXAC9IVRw', 'M7lc1UVf-VE', '9bZkp7q19f0', 'kJQP7kiw5Fk'].includes(id)).length)} tarefas restantes hoje` : 'Ilimitado'}
+                    <Zap className="w-3.5 h-3.5 fill-current" /> {(() => {
+                      const today = new Date().toDateString();
+                      const completedToday = stats.lastTaskDate === today ? (stats.completedTodayCount || 0) : 0;
+                      const maxTasks = stats.plan === 'Basic' ? 5 : stats.plan === 'Silver' ? 15 : Infinity;
+                      const remainingTasks = maxTasks - completedToday;
+                      return stats.plan === 'Gold' ? 'Ilimitado' : `${Math.max(0, remainingTasks)} tarefas restantes hoje`;
+                    })()}
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <YouTubeTask 
-                    videoId="dQw4w9WgXcQ" 
-                    reward={1.50} 
-                    title="Rick Astley - Never Gonna Give You Up (Official Music Video)" 
-                    isCompleted={stats.completedTasks.includes("dQw4w9WgXcQ")}
-                    onComplete={(reward) => handleTaskComplete("dQw4w9WgXcQ", reward)} 
-                  />
-                  <YouTubeTask 
-                    videoId="jNQXAC9IVRw" 
-                    reward={1.50} 
-                    title="Me at the zoo (Primeiro Vídeo do YouTube)" 
-                    isCompleted={stats.completedTasks.includes("jNQXAC9IVRw")}
-                    onComplete={(reward) => handleTaskComplete("jNQXAC9IVRw", reward)} 
-                  />
-                  <YouTubeTask 
-                    videoId="M7lc1UVf-VE" 
-                    reward={1.00} 
-                    title="YouTube Developers: Embedded Player Customization" 
-                    isCompleted={stats.completedTasks.includes("M7lc1UVf-VE")}
-                    onComplete={(reward) => handleTaskComplete("M7lc1UVf-VE", reward)} 
-                  />
-                  <YouTubeTask 
-                    videoId="9bZkp7q19f0" 
-                    reward={0.50} 
-                    title="PSY - GANGNAM STYLE (강남스타일) M/V" 
-                    isCompleted={stats.completedTasks.includes("9bZkp7q19f0")}
-                    onComplete={(reward) => handleTaskComplete("9bZkp7q19f0", reward)} 
-                  />
-                  <YouTubeTask 
-                    videoId="kJQP7kiw5Fk" 
-                    reward={0.50} 
-                    title="Luis Fonsi - Despacito ft. Daddy Yankee" 
-                    isCompleted={stats.completedTasks.includes("kJQP7kiw5Fk")}
-                    onComplete={(reward) => handleTaskComplete("kJQP7kiw5Fk", reward)} 
-                  />
+                  {YOUTUBE_VIDEOS.filter(v => v.day === activeDay).map((video) => (
+                    <YouTubeTask 
+                      key={video.id}
+                      videoId={video.videoId} 
+                      reward={video.reward} 
+                      title={video.title} 
+                      isCompleted={stats.completedTasks.includes(video.id)}
+                      onComplete={(reward) => handleTaskComplete(video.id, reward)} 
+                    />
+                  ))}
                 </div>
               </div>
 
@@ -305,6 +385,7 @@ export default function HomePage() {
                 <PibTasks 
                   completedTasks={stats.completedTasks} 
                   onComplete={handleTaskComplete} 
+                  activeDay={activeDay}
                 />
               </div>
             </motion.div>

@@ -10,6 +10,8 @@ export interface UserStats {
   invites: number;
   plan: 'Basic' | 'Silver' | 'Gold';
   completedTasks: string[];
+  completedTodayCount?: number;
+  lastTaskDate?: string | null;
 }
 
 export function useEarnings() {
@@ -22,6 +24,8 @@ export function useEarnings() {
       invites: 0,
       plan: 'Basic',
       completedTasks: [],
+      completedTodayCount: 0,
+      lastTaskDate: null,
     };
 
     if (typeof window !== 'undefined') {
@@ -33,6 +37,8 @@ export function useEarnings() {
             ...defaultStats,
             ...parsed,
             completedTasks: parsed.completedTasks || [],
+            completedTodayCount: parsed.completedTodayCount ?? 0,
+            lastTaskDate: parsed.lastTaskDate || null,
           };
         } catch (e) {
           console.error('Failed to load stats', e);
@@ -67,13 +73,27 @@ export function useEarnings() {
 
   const completeTask = (taskId: string, reward: number) => {
     if (stats.completedTasks.includes(taskId)) return false;
-    setStats(prev => ({
-      ...prev,
-      balance: prev.balance + reward,
-      totalEarned: prev.totalEarned + reward,
-      tasksCompleted: prev.tasksCompleted + 1,
-      completedTasks: [...prev.completedTasks, taskId],
-    }));
+
+    const today = new Date().toDateString();
+    const isNewDay = stats.lastTaskDate !== today;
+    const currentCompletedToday = isNewDay ? 0 : (stats.completedTodayCount || 0);
+
+    if (stats.plan === 'Basic' && currentCompletedToday >= 5) return false;
+    if (stats.plan === 'Silver' && currentCompletedToday >= 15) return false;
+
+    setStats(prev => {
+      const isNewDayPrev = prev.lastTaskDate !== today;
+      const count = isNewDayPrev ? 1 : (prev.completedTodayCount || 0) + 1;
+      return {
+        ...prev,
+        balance: prev.balance + reward,
+        totalEarned: prev.totalEarned + reward,
+        tasksCompleted: prev.tasksCompleted + 1,
+        completedTasks: [...prev.completedTasks, taskId],
+        completedTodayCount: count,
+        lastTaskDate: today,
+      };
+    });
     return true;
   };
 

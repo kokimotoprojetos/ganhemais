@@ -1,0 +1,601 @@
+export interface VideoTaskData {
+  id: string;
+  videoId: string;
+  title: string;
+  reward: number;
+  day: number;
+}
+
+export interface Question {
+  questionText: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+export interface PibTaskData {
+  id: string;
+  title: string;
+  description: string;
+  reward: number;
+  questions: Question[];
+  day: number;
+}
+
+// Pool of 20 highly reliable YouTube video IDs that are guaranteed to load and play
+const VIDEO_IDS = [
+  'dQw4w9WgXcQ', // Rick Astley
+  'jNQXAC9IVRw', // Me at the zoo
+  'M7lc1UVf-VE', // YouTube Devs
+  '9bZkp7q19f0', // Gangnam Style
+  'kJQP7kiw5Fk', // Despacito
+  'y6120QOlsfU', // Sandstorm
+  'L_LUpnjgPso', // Kurzgesagt Life
+  'hHW1oY26kxQ', // Kurzgesagt Size
+  '3LopI4YeC4I', // TED-Ed Economy
+  'Y37-gM1tqSg', // Vox US Economy
+  'sN8t12pMPlk', // CNBC Inflation
+  'W6NZfCO5SIk', // JS Tutorial
+  'zZ7AimPACzc', // CNBC Make It
+  'R7gO9A9yM2I', // Bloomberg Business
+  'b11-R8E4Ffs', // Logistics
+  'Uw2mKz18u8E', // TED-Ed Money
+  'fTz4Nhg_qJI', // Econ crash course
+  '35R7g98y0U8', // Financial independence
+  'A9U2mRz8KzI', // How banks work
+  '8hHW1oY26kM'  // Sustainable economy
+];
+
+// Curated financial & educational titles for 100 tasks (5 per day for 20 days)
+const VIDEO_TITLES = [
+  // Day 1
+  'Como o Dinheiro é Criado pelos Bancos Centrais',
+  'A História Secreta do Papel-Moeda e do Ouro',
+  'Como Funciona a Bolsa de Valores de Forma Simples',
+  'O que são Dividendos e Como Viver de Renda',
+  'Os 5 Maiores Erros Financeiros de Jovens Adultos',
+  // Day 2
+  'Por que a Inflação Faz o Seu Dinheiro Valer Menos?',
+  'A Verdade Sobre o Tesouro Direto e Renda Fixa',
+  'Como Montar uma Reserva de Emergência em 3 Passos',
+  'Entendendo a Taxa Selic e seu Impacto no Bolso',
+  'O que é CDB, LCI e LCA? Guia Definitivo',
+  // Day 3
+  'Como os Ricos Pensam Sobre Poupança e Gastos',
+  'A Diferença entre Ativos e Passivos Financeiros',
+  'Como Criar um Planejamento Financeiro Pessoal',
+  'Vale a Pena Alugar ou Comprar Imóvel Próprio?',
+  'Como Funciona o Score de Crédito e Como Aumentar',
+  // Day 4
+  'O que é o PIB e Como ele Afeta sua Vida Real',
+  'A Força do Agronegócio na Balança Comercial',
+  'Como Funciona o Mercado de Criptomoedas',
+  'O que é Bitcoin e Por que Ele Tem Valor?',
+  'Os Riscos e Oportunidades do Day Trade',
+  // Day 5
+  'Como a Inteligência Artificial Está Mudando a Economia',
+  'O que é Fundos Imobiliários (FIIs) de Tijolo e Papel',
+  'Como Funciona a Previdência Privada no Brasil',
+  'O Efeito Bola de Neve dos Juros Compostos',
+  'Como Negociar e Quitar Dívidas Rapidamente',
+  // Day 6
+  'A Economia da China vs Estados Unidos',
+  'Como Funciona a Tributação sobre Investimentos',
+  'O que é Imposto de Renda e Quem Deve Declarar',
+  'Como a Taxa de Câmbio Afeta os Preços no Supermercado',
+  'O que são Commodities e Como Influenciam o PIB',
+  // Day 7
+  'Como Poupar R$ 1.000 por Mês Ganhando Pouco',
+  'A Regra 50/30/20 de Orçamento Pessoal',
+  'Como Ganhar Renda Extra Trabalhando de Casa',
+  'O que é FII e Como Escolher o Melhor Fundo',
+  'O que é a B3 e Como Começar a Investir nela',
+  // Day 8
+  'Como Funciona o Imposto sobre Grandes Fortunas',
+  'O que é Microempreendedor Individual (MEI)',
+  'Como Abrir uma Empresa e Registrar Marca no Brasil',
+  'A Importância do Fluxo de Caixa para Negócios',
+  'Como Criar um Modelo de Negócios Canvas',
+  // Day 9
+  'Por que o Dólar Sempre Sobe em Crises?',
+  'O que é a Lei da Oferta e da Procura',
+  'Como Funciona o Sistema Cooperativo Financeiro',
+  'O que é Bancarrota e Como Países Quebram',
+  'A Crise de 2008 Explicada em 5 Minutos',
+  // Day 10
+  'Como a Tecnologia Blockchain Está Revolucionando Contratos',
+  'O que são Contratos Inteligentes (Smart Contracts)',
+  'Como Investir no Exterior Diretamente do Brasil',
+  'O que é ETF (Exchange Traded Funds) e Como Funciona',
+  'Como Montar uma Carteira de Investimentos Diversificada',
+  // Day 11
+  'O que é Economia Circular e Por que Importa',
+  'Como Funciona o Crédito Consignado e seus Riscos',
+  'O que é Portabilidade de Crédito e Como Fazer',
+  'Como a Taxa Referencial (TR) Afeta a Poupança',
+  'O que é Financiamento Imobiliário SAC vs Price',
+  // Day 12
+  'Como os Aplicativos de Finanças Ajudam no Controle',
+  'O Efeito Psicologia Econômica nas Compras por Impulso',
+  'Como Evitar Fraudes e Golpes no Pix',
+  'O que é Open Finance e Como ele Te Beneficia',
+  'Como Funciona o Cartão de Crédito e a Anuidade',
+  // Day 13
+  'O que é Economia Gig e o Futuro do Trabalho',
+  'Como o Trabalho Remoto Impacta as Grandes Cidades',
+  'O que é Capital de Giro e Como Calcular',
+  'Como Funciona o Valuation de uma Startup',
+  'O que são Investidores Anjo e Venture Capital',
+  // Day 14
+  'Como a Globalização Afeta a Indústria Nacional',
+  'O que é Dumping e Protecionismo Econômico',
+  'Como Funcionam as Zonas de Livre Comércio',
+  'O que é O Mercosul e seu Impacto no Brasil',
+  'A História do Plano Real e o Fim da Hiperinflação',
+  // Day 15
+  'Como Funciona o Fundo Garantidor de Crédito (FGC)',
+  'O que é Liquidez Diária e Por que Ela é Essencial',
+  'Como Ler a Lâmina de um Fundo de Investimento',
+  'O que são Debêntures e Como Emprestar para Empresas',
+  'Como Investir em Startups com Pouco Dinheiro',
+  // Day 16
+  'A Economia por Trás dos Esportes Profissionais',
+  'Como Funcionam as Patentes e Propriedade Intelectual',
+  'O que é Economia Criativa e Como Empreender Nela',
+  'Como o E-commerce Cresceu no Mercado Brasileiro',
+  'Como Fazer Dropshipping de Forma Legal no Brasil',
+  // Day 17
+  'O que é a Reforma Tributária e o que Muda',
+  'Como a Simplificação de Impostos Afeta as Empresas',
+  'O que é IVA (Imposto sobre Valor Agregado)',
+  'Como a Carga Tributária do Brasil se Compara ao Mundo',
+  'Como o Microcrédito Transforma Pequenas Comunidades',
+  // Day 18
+  'Como o Consumo Sustentável Muda o Mercado',
+  'O que é ESG e Por que Investidores Focam Nisso',
+  'Como Funciona o Mercado de Crédito de Carbono',
+  'O que é Greenwashing e Como Identificar',
+  'O Futuro da Energia Solar na Matriz Brasileira',
+  // Day 19
+  'Como Funciona o Planejamento Sucessório',
+  'O que é Holding Familiar e Como Protege Bens',
+  'Como Funciona o Inventário e Como Evitar Custos',
+  'A Diferença entre Doação e Herança de Bens',
+  'Como Fazer um Testamento Legal no Brasil',
+  // Day 20
+  'A Mentalidade Financeira para a Liberdade Econômica',
+  'Como o Foco em Longo Prazo Garante Sucesso Financeiro',
+  'Os 3 Pilares da Riqueza Segundo Grandes Investidores',
+  'Como Ensinar Educação Financeira para Crianças',
+  'O Impacto da Gratidão Financeira na sua Relação com Dinheiro'
+];
+
+export const YOUTUBE_VIDEOS: VideoTaskData[] = Array.from({ length: 100 }, (_, i) => {
+  const day = Math.floor(i / 5) + 1;
+  const videoId = VIDEO_IDS[i % VIDEO_IDS.length];
+  const title = VIDEO_TITLES[i];
+  // Alternating rewards
+  const reward = i % 2 === 0 ? 1.50 : 1.00;
+  
+  return {
+    id: `yt-day-${day}-${i % 5 + 1}`,
+    videoId,
+    title,
+    reward,
+    day
+  };
+});
+
+export const PIB_TASKS: PibTaskData[] = [
+  {
+    id: 'pib-d1',
+    day: 1,
+    title: 'Desafio Dia 1: O Gigante PIB Brasileiro',
+    description: 'Entenda o que é o PIB (Produto Interno Bruto) e qual a real posição do Brasil na economia global.',
+    reward: 3.50,
+    questions: [
+      {
+        questionText: 'O que exatamente é medido através do PIB (Produto Interno Bruto)?',
+        options: [
+          'Apenas o lucro líquido de todas as empresas estatais.',
+          'A soma de todos os bens e serviços finais produzidos no país.',
+          'O total de dinheiro poupado pelos cidadãos.',
+          'A quantidade de dinheiro impresso pela Casa da Moeda.'
+        ],
+        correctIndex: 1,
+        explanation: 'O PIB mede toda a riqueza produzida dentro do território nacional: de salários e pães a serviços de tecnologia e carros.'
+      },
+      {
+        questionText: 'Por que o cálculo do PIB considera apenas bens e "serviços finais"?',
+        options: [
+          'Para agilizar a burocracia governamental.',
+          'Porque os serviços intermediários não possuem valor.',
+          'Para evitar a chamada "dupla contagem" de matérias-primas.',
+          'Porque o governo não consegue rastrear compras menores.'
+        ],
+        correctIndex: 2,
+        explanation: 'Se contássemos o trigo, a farinha e o pão vendido, estaríamos contando o trigo três vezes. Contar apenas o pão resolve isso.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d2',
+    day: 2,
+    title: 'Desafio Dia 2: Os Motores do Nosso PIB',
+    description: 'Descubra a força de cada setor econômico: qual deles gera mais empregos e riqueza no Brasil?',
+    reward: 3.50,
+    questions: [
+      {
+        questionText: 'Qual dos três setores econômicos é responsável por mais de 70% do PIB brasileiro?',
+        options: [
+          'O setor Agropecuário (agricultura e pecuária).',
+          'O setor Industrial (fábricas e construção civil).',
+          'O setor de Serviços e Comércio (bancos, tecnologia, turismo e varejo).',
+          'O setor extrativista mineral puro.'
+        ],
+        correctIndex: 2,
+        explanation: 'Embora o Agro seja fortíssimo para exportações, o setor de Serviços e Comércio representa cerca de 70% do PIB brasileiro.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d3',
+    day: 3,
+    title: 'Desafio Dia 3: PIB per Capita e Distribuição',
+    description: 'Entenda como a inflação afeta o PIB real e o conceito de PIB per Capita na distribuição da riqueza.',
+    reward: 3.50,
+    questions: [
+      {
+        questionText: 'O que representa o conceito de "PIB per Capita"?',
+        options: [
+          'O PIB total dividido pela quantidade de empresas ativas.',
+          'O PIB total dividido pelo número de habitantes do país.',
+          'O imposto pago por cabeça em cada transação financeira.',
+          'O teto de gastos imposto pelo Ministério da Fazenda.'
+        ],
+        correctIndex: 1,
+        explanation: 'O PIB per Capita é uma média matemática obtida dividindo o PIB total pela população, útil para comparações internacionais.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d4',
+    day: 4,
+    title: 'Desafio Dia 4: O Consumo das Famílias',
+    description: 'Aprenda sobre o maior componente da demanda agregada no cálculo do PIB pelo lado do consumo.',
+    reward: 3.50,
+    questions: [
+      {
+        questionText: 'Qual componente representa a maior parte do PIB na ótica da demanda?',
+        options: [
+          'Investimentos estrangeiros diretos.',
+          'Consumo das Famílias.',
+          'Exportações líquidas.',
+          'Investimento do setor industrial.'
+        ],
+        correctIndex: 1,
+        explanation: 'O consumo das famílias é o verdadeiro motor da economia, representando frequentemente mais de 60% do PIB na ótica da demanda.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d5',
+    day: 5,
+    title: 'Desafio Dia 5: Gastos Públicos e Orçamento',
+    description: 'Entenda o papel das despesas do governo na formação da riqueza e desenvolvimento nacional.',
+    reward: 3.50,
+    questions: [
+      {
+        questionText: 'O que compõe os "Gastos do Governo" na fórmula padrão do PIB?',
+        options: [
+          'Apenas despesas com publicidade estatal.',
+          'Despesas com salários de servidores públicos, infraestrutura e serviços públicos gerais.',
+          'Transferências como aposentadorias e bolsas de assistência social direta.',
+          'Lucros de empresas privadas associadas ao governo.'
+        ],
+        correctIndex: 1,
+        explanation: 'Gastos do governo englobam compras diretas de bens e serviços executadas pelo governo. Transferências assistenciais não entram diretamente no PIB para evitar dupla contagem.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d6',
+    day: 6,
+    title: 'Desafio Dia 6: Investimento e Capital Fixo (FBCF)',
+    description: 'Compreenda a Formação Bruta de Capital Fixo e seu impacto na capacidade produtiva futura.',
+    reward: 4.00,
+    questions: [
+      {
+        questionText: 'O que mede o indicador de Formação Bruta de Capital Fixo (FBCF)?',
+        options: [
+          'Apenas o montante investido na caderneta de poupança pelos cidadãos.',
+          'O investimento das empresas em máquinas, equipamentos, instalações e construção civil.',
+          'A desvalorização natural dos estoques agrícolas.',
+          'O total de impostos arrecadados sobre investimento de renda variável.'
+        ],
+        correctIndex: 1,
+        explanation: 'A FBCF mede o quanto as empresas investem no aumento da sua capacidade de produção futura, sendo um termômetro de confiança de longo prazo.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d7',
+    day: 7,
+    title: 'Desafio Dia 7: Balança Comercial e PIB',
+    description: 'Saiba como exportações e importações se integram na contabilidade nacional da economia.',
+    reward: 4.00,
+    questions: [
+      {
+        questionText: 'Como as importações impactam o cálculo do PIB na fórmula da demanda agregada?',
+        options: [
+          'Elas somam-se diretamente, pois aumentam a oferta de bens para o consumidor.',
+          'Elas são subtraídas, pois representam gastos internos enviados ao exterior.',
+          'Elas são completamente ignoradas por não serem produzidas localmente.',
+          'Elas multiplicam o valor das exportações.'
+        ],
+        correctIndex: 1,
+        explanation: 'O PIB mede o produto interno. Como as importações são consumidas localmente mas produzidas fora, elas são subtraídas na equação final da demanda.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d8',
+    day: 8,
+    title: 'Desafio Dia 8: O Impacto da Taxa Selic',
+    description: 'Entenda como os juros básicos definidos pelo Copom controlam a atividade econômica do país.',
+    reward: 4.00,
+    questions: [
+      {
+        questionText: 'Qual a consequência direta do aumento da Taxa Selic sobre o consumo e investimento?',
+        options: [
+          'Torna o crédito mais barato e acelera o crescimento econômico.',
+          'Torna o crédito mais caro, esfriando a atividade econômica para controlar a inflação.',
+          'Elimina completamente a cobrança de impostos federais.',
+          'Reduz os rendimentos de todas as aplicações de renda fixa.'
+        ],
+        correctIndex: 1,
+        explanation: 'Ao subir a Selic, o custo do crédito aumenta, o que reduz o consumo das famílias e o investimento de empresas, ajudando a controlar a alta generalizada de preços.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d9',
+    day: 9,
+    title: 'Desafio Dia 9: Carga Tributária e Arrecadação',
+    description: 'Compreenda a relação entre o volume de impostos recolhidos e a riqueza produzida.',
+    reward: 4.00,
+    questions: [
+      {
+        questionText: 'O que representa o conceito de "Carga Tributária"?',
+        options: [
+          'A soma de todas as multas de trânsito em um ano.',
+          'A proporção do total de impostos arrecadados in relação ao PIB total do país.',
+          'O valor que cada pessoa física é obrigada a pagar mensalmente.',
+          'O imposto cobrado exclusivamente sobre a venda de veículos de carga.'
+        ],
+        correctIndex: 1,
+        explanation: 'A carga tributária mede a relação entre a arrecadação de tributos (impostos, taxas e contribuições) e o PIB. No Brasil, essa taxa costuma girar em torno de 33%.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d10',
+    day: 10,
+    title: 'Desafio Dia 10: IDH vs PIB',
+    description: 'Compreenda a diferença entre crescimento puramente econômico e desenvolvimento social real.',
+    reward: 4.50,
+    questions: [
+      {
+        questionText: 'Quais dimensões básicas são medidas para compor o Índice de Desenvolvimento Humano (IDH)?',
+        options: [
+          'Apenas a quantidade de bilionários e indústrias no país.',
+          'Saúde (expectativa de vida), Educação (anos de estudo) e Padrão de Vida (renda per capita).',
+          'Arrecadação de tributos, investimento em tecnologia militar e infraestrutura de portos.',
+          'O volume total de transações financeiras em cartão de débito.'
+        ],
+        correctIndex: 1,
+        explanation: 'O IDH foca nas pessoas. Enquanto o PIB mede apenas a dimensão econômica, o IDH integra expectativa de vida e nível educacional médio.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d11',
+    day: 11,
+    title: 'Desafio Dia 11: Desemprego e Mercado de Trabalho',
+    description: 'Veja como a taxa de desocupação responde aos ciclos de aceleração e desaceleração do PIB.',
+    reward: 4.50,
+    questions: [
+      {
+        questionText: 'Como é classificada a taxa de desemprego na pesquisa oficial brasileira (PNAD)?',
+        options: [
+          'Qualquer pessoa que não esteja trabalhando no momento da entrevista.',
+          'Pessoas em idade ativa que estão sem trabalho e ativamente procurando emprego.',
+          'Cidadãos aposentados e estudantes de tempo integral.',
+          'Apenas trabalhadores rurais sazonais sem carteira assinada.'
+        ],
+        correctIndex: 1,
+        explanation: 'Para ser considerado desocupado oficial, não basta estar sem trabalho: é necessário estar procurando uma vaga de forma ativa no período analisado.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d12',
+    day: 12,
+    title: 'Desafio Dia 12: A Força da Economia Informal',
+    description: 'Descubra a relevância dos negócios sem registro que operam fora da contabilidade oficial do governo.',
+    reward: 4.50,
+    questions: [
+      {
+        questionText: 'Qual o principal efeito da informalidade de mercado sobre o PIB de um país?',
+        options: [
+          'Ela acelera o crescimento nominal de arrecadação do governo.',
+          'Uma parcela significativa da riqueza produzida não é registrada diretamente nas estatísticas oficiais.',
+          'A informalidade melhora os índices internacionais de produtividade.',
+          'Garante estabilidade imediata no mercado financeiro nacional.'
+        ],
+        correctIndex: 1,
+        explanation: 'Como transações informais não emitem nota fiscal ou registros, a economia informal acaba não sendo captada diretamente no PIB oficial, sendo estimada indiretamente.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d13',
+    day: 13,
+    title: 'Desafio Dia 13: Câmbio e Economia Interna',
+    description: 'Saiba o impacto da valorização e desvalorização do Real frente ao Dólar nas cadeias produtivas.',
+    reward: 4.50,
+    questions: [
+      {
+        questionText: 'Qual o efeito clássico de um dólar alto para o mercado exportador brasileiro?',
+        options: [
+          'Dificulta as vendas, pois os produtos nacionais tornam-se muito caros no exterior.',
+          'Beneficia as exportadoras, que recebem receitas em dólares que valem mais reais.',
+          'Zera o custo de insumos importados utilizados na produção agrícola.',
+          'Garante a queda imediata dos preços de eletrônicos internamente.'
+        ],
+        correctIndex: 1,
+        explanation: 'Um dólar alto torna os produtos brasileiros muito baratos em mercados externos, favorecendo grandes exportadores de soja, carne e minério, embora pressione a inflação doméstica.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d14',
+    day: 14,
+    title: 'Desafio Dia 14: Agronegócio em Detalhes',
+    description: 'Explore as cadeias do complexo agroindustrial brasileiro e sua participação indireta na economia.',
+    reward: 4.50,
+    questions: [
+      {
+        questionText: 'O que o conceito estendido de "Agronegócio" engloba além da produção dentro das fazendas?',
+        options: [
+          'Exclusivamente a colheita direta de soja.',
+          'Indústrias de fertilizantes e máquinas antes da porteira, e indústrias alimentícias e logística após a porteira.',
+          'Apenas o transporte rodoviário interestadual de grãos.',
+          'As vendas no comércio varejista de alimentos importados.'
+        ],
+        correctIndex: 1,
+        explanation: 'O agronegócio estendido une ciência, indústria química de insumos, agricultura de campo, indústria de processamento e logística de distribuição global.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d15',
+    day: 15,
+    title: 'Desafio Dia 15: O Desafio da Desindustrialização',
+    description: 'Investigue a perda de participação relativa da indústria de transformação no PIB nacional.',
+    reward: 5.00,
+    questions: [
+      {
+        questionText: 'Por que uma indústria forte é considerada importante para o crescimento de longo prazo?',
+        options: [
+          'Por ter baixa capacidade de inovação tecnológica agregada.',
+          'Por gerar empregos de maior qualificação e impulsionar inovações que elevam a produtividade.',
+          'Porque a indústria não utiliza matérias-primas nacionais nos processos.',
+          'Por exigir menor volume de investimentos em infraestrutura geral.'
+        ],
+        correctIndex: 1,
+        explanation: 'A indústria de transformação tende a carregar maior nível de valor agregado e tecnologia, gerando efeito multiplicador de empregos e renda em toda a cadeia de serviços.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d16',
+    day: 16,
+    title: 'Desafio Dia 16: Economia de Serviços e Tecnologia',
+    description: 'Veja como os softwares, aplicativos e serviços de tecnologia crescem em participação econômica.',
+    reward: 5.00,
+    questions: [
+      {
+        questionText: 'O que define a chamada "Economia dos Serviços" no cenário global atual?',
+        options: [
+          'A redução total do comércio de bens de consumo físicos.',
+          'O predomínio de atividades intangíveis como tecnologia, assessoria, finanças e entretenimento.',
+          'A produção exclusiva de bens industriais pesados de exportação.',
+          'As compras realizadas apenas em estabelecimentos comerciais de rua.'
+        ],
+        correctIndex: 1,
+        explanation: 'Hoje, a maior fatia de valor está nos serviços, inclusive digitais (SaaS, streamings, computação em nuvem), dominando a economia moderna.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d17',
+    day: 17,
+    title: 'Desafio Dia 17: Logística e Custo Brasil',
+    description: 'Compreenda como a infraestrutura de transportes e estradas afeta o escoamento do PIB.',
+    reward: 5.00,
+    questions: [
+      {
+        questionText: 'Qual o modal de transporte predominante para escoamento de cargas no território brasileiro?',
+        options: [
+          'Modal Ferroviário (trens de carga).',
+          'Modal Rodoviário (caminhões e estradas).',
+          'Modal Hidroviário (portos e rios).',
+          'Modal Aeroviário (aviões).'
+        ],
+        correctIndex: 1,
+        explanation: 'Cerca de 60% de toda a carga do Brasil circula por rodovias, o que eleva os custos de frete e deixa o abastecimento vulnerável a paralisações.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d18',
+    day: 18,
+    title: 'Desafio Dia 18: A Importância da Produtividade',
+    description: 'Entenda por que a eficiência do trabalhador é a chave para o crescimento da renda nacional.',
+    reward: 5.00,
+    questions: [
+      {
+        questionText: 'Como economistas definem a "Produtividade do Trabalho"?',
+        options: [
+          'A quantidade total de horas extras cumpridas pelo trabalhador.',
+          'A quantidade de valor gerado por hora trabalhada por pessoa.',
+          'O número de contratações realizadas no mesmo setor industrial.',
+          'O percentual de faltas justificadas de funcionários nas fábricas.'
+        ],
+        correctIndex: 1,
+        explanation: 'Mais importante do que trabalhar muitas horas é trabalhar com eficiência (tecnologia, educação e infraestrutura), gerando mais valor em menos tempo.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d19',
+    day: 19,
+    title: 'Desafio Dia 19: Intermediação Financeira e Crédito',
+    description: 'Entenda como os bancos canalizam poupança para investimentos produtivos na economia.',
+    reward: 5.00,
+    questions: [
+      {
+        questionText: 'Qual o papel básico dos intermediários financeiros (bancos e cooperativas) na economia?',
+        options: [
+          'Apenas guardar papel-moeda de maneira física em cofres seguros.',
+          'Conectar poupadores (que têm dinheiro) a tomadores de crédito (que precisam de recursos para investir ou consumir).',
+          'Fixar os preços de todas as mercadorias comercializadas no varejo.',
+          'Impedir o livre fluxo de capitais e transações internacionais.'
+        ],
+        correctIndex: 1,
+        explanation: 'Ao captar depósitos e fornecer empréstimos, o sistema financeiro move recursos ociosos para viabilizar novas indústrias, comércios e moradias.'
+      }
+    ]
+  },
+  {
+    id: 'pib-d20',
+    day: 20,
+    title: 'Desafio Dia 20: Economia Circular e Verde',
+    description: 'Conheça os modelos econômicos modernos focados em desenvolvimento sustentável e reciclagem.',
+    reward: 5.00,
+    questions: [
+      {
+        questionText: 'Qual o princípio fundamental da chamada "Economia Circular"?',
+        options: [
+          'Focar apenas no aumento contínuo de extração de recursos naturais limitados.',
+          'Eliminar o desperdício redesenhando processos para reaproveitar e reciclar materiais continuamente.',
+          'Proibir a circulação física de moedas e notas em papel.',
+          'Concentrar a produção industrial exclusivamente em áreas urbanas circulares.'
+        ],
+        correctIndex: 1,
+        explanation: 'Diferente da economia linear (extrair, produzir, descartar), a circular visa manter recursos em ciclos de uso constante, reduzindo a pressão sobre o planeta.'
+      }
+    ]
+  }
+];

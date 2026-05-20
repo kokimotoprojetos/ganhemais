@@ -21,6 +21,28 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
   const [isFinished, setIsFinished] = useState(false);
   const [isClaimed, setIsClaimed] = useState(false);
   const playerRef = useRef<any>(null);
+  const [displayTitle, setDisplayTitle] = useState(title);
+
+  // Dynamically fetch actual YouTube title on client side (CORS-free oEmbed provider)
+  useEffect(() => {
+    let active = true;
+    const fetchRealTitle = async () => {
+      try {
+        const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (active && data && data.title) {
+          setDisplayTitle(data.title);
+        }
+      } catch (err) {
+        console.error('Failed to fetch oembed title for video:', videoId, err);
+      }
+    };
+    fetchRealTitle();
+    return () => {
+      active = false;
+    };
+  }, [videoId]);
 
   // Reset states when modal is opened/closed
   useEffect(() => {
@@ -55,6 +77,14 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
 
   const onReady: YouTubeProps['onReady'] = (event) => {
     playerRef.current = event.target;
+    try {
+      const videoData = event.target.getVideoData();
+      if (videoData && videoData.title) {
+        setDisplayTitle(videoData.title);
+      }
+    } catch (e) {
+      console.error("Error getting video data inside player onReady:", e);
+    }
   };
 
   const onStateChange: YouTubeProps['onStateChange'] = (event) => {
@@ -106,7 +136,7 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
           {/* Cover image styling with video thumbnail */}
           <img 
             src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`} 
-            alt={title}
+            alt={displayTitle}
             className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500"
           />
           
@@ -134,7 +164,7 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
 
         <div className="p-6 flex flex-col justify-between flex-grow">
           <div>
-            <h4 className="font-black text-slate-800 leading-tight mb-2 text-lg group-hover:text-emerald-700 transition-colors">{title}</h4>
+            <h4 className="font-black text-slate-800 leading-tight mb-2 text-lg group-hover:text-emerald-700 transition-colors">{displayTitle}</h4>
             <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-slate-400" /> Assistir por 30 segundos
             </p>
@@ -228,7 +258,7 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <span className="text-[10px] text-emerald-400 font-black uppercase tracking-widest">Tarefa de Vídeo</span>
-                      <h3 className="text-xl font-black text-white tracking-tight mt-1 leading-tight">{title}</h3>
+                      <h3 className="text-xl font-black text-white tracking-tight mt-1 leading-tight">{displayTitle}</h3>
                     </div>
                     <button 
                       onClick={handleCloseAttempt}

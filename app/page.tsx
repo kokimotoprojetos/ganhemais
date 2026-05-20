@@ -211,49 +211,45 @@ export default function HomePage() {
                 <div className="flex justify-between items-end mb-6">
                   <h3 className="text-xl font-black text-slate-900 tracking-tight">Vídeos do Dia</h3>
                   <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-black">
-                    <Zap className="w-3.5 h-3.5 fill-current" /> {stats.plan === 'Basic' ? `${Math.max(0, 3 - stats.completedTasks.length)} tarefas restantes` : 'Ilimitado'}
+                    <Zap className="w-3.5 h-3.5 fill-current" /> {stats.plan === 'Basic' ? `${Math.max(0, 5 - stats.completedTasks.filter(id => ['dQw4w9WgXcQ', 'jNQXAC9IVRw', 'M7lc1UVf-VE', '9bZkp7q19f0', 'kJQP7kiw5Fk'].includes(id)).length)} tarefas restantes hoje` : 'Ilimitado'}
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   <YouTubeTask 
                     videoId="dQw4w9WgXcQ" 
-                    reward={0.50} 
-                    title="Promoção Tech" 
+                    reward={1.50} 
+                    title="Promoção Especial Tech" 
                     isCompleted={stats.completedTasks.includes("dQw4w9WgXcQ")}
                     onComplete={(reward) => handleTaskComplete("dQw4w9WgXcQ", reward)} 
                   />
                   <YouTubeTask 
                     videoId="jNQXAC9IVRw" 
-                    reward={0.75} 
-                    title="Review Investimento" 
+                    reward={1.50} 
+                    title="Aprenda a Multiplicar" 
                     isCompleted={stats.completedTasks.includes("jNQXAC9IVRw")}
                     onComplete={(reward) => handleTaskComplete("jNQXAC9IVRw", reward)} 
                   />
-                  {stats.plan === 'Basic' ? (
-                    <div className="bg-slate-100 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center p-8 text-center gap-3">
-                      <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center text-slate-400">
-                        <Star className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <p className="font-bold text-slate-400 text-sm mb-1">Vídeo Exclusivo</p>
-                        <p className="text-[10px] text-slate-400 font-medium italic">Disponível nos planos Prata/Ouro</p>
-                      </div>
-                      <button 
-                        onClick={() => setActiveTab('planos')}
-                        className="text-xs font-black text-indigo-600 bg-indigo-50 px-4 py-2 rounded-xl mt-2"
-                      >
-                        UPGRADE
-                      </button>
-                    </div>
-                  ) : (
-                    <YouTubeTask 
-                      videoId="M7lc1UVf-VE" 
-                      reward={1.50} 
-                      title="Aula Especial VIP" 
-                      isCompleted={stats.completedTasks.includes("M7lc1UVf-VE")}
-                      onComplete={(reward) => handleTaskComplete("M7lc1UVf-VE", reward)} 
-                    />
-                  )}
+                  <YouTubeTask 
+                    videoId="M7lc1UVf-VE" 
+                    reward={1.00} 
+                    title="Segredo Revelado" 
+                    isCompleted={stats.completedTasks.includes("M7lc1UVf-VE")}
+                    onComplete={(reward) => handleTaskComplete("M7lc1UVf-VE", reward)} 
+                  />
+                  <YouTubeTask 
+                    videoId="9bZkp7q19f0" 
+                    reward={0.50} 
+                    title="Introdução aos Ganhos" 
+                    isCompleted={stats.completedTasks.includes("9bZkp7q19f0")}
+                    onComplete={(reward) => handleTaskComplete("9bZkp7q19f0", reward)} 
+                  />
+                  <YouTubeTask 
+                    videoId="kJQP7kiw5Fk" 
+                    reward={0.50} 
+                    title="Estratégias Financeiras" 
+                    isCompleted={stats.completedTasks.includes("kJQP7kiw5Fk")}
+                    onComplete={(reward) => handleTaskComplete("kJQP7kiw5Fk", reward)} 
+                  />
                 </div>
               </div>
 
@@ -367,7 +363,7 @@ export default function HomePage() {
                   <h4 className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-2">Plano Grátis</h4>
                   <p className="text-3xl font-black mb-8 text-slate-900 italic tracking-tighter">Básico</p>
                   <ul className="space-y-4 mb-12 flex-1 text-sm font-medium text-slate-500">
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500" /> 3 Tarefas por dia</li>
+                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500" /> 5 Tarefas por dia</li>
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-500" /> Check-in R$ 2,00</li>
                     <li className="flex items-center gap-3 opacity-30"><Lock className="w-5 h-5" /> Saque sem prioridade</li>
                   </ul>

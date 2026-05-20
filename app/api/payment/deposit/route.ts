@@ -1,5 +1,29 @@
 import { NextResponse } from 'next/server';
 
+function isValidCpf(cpf: string): boolean {
+  const clean = cpf.replace(/\D/g, '');
+  if (clean.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(clean)) return false;
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(clean.charAt(i)) * (10 - i);
+  }
+  let rev = 11 - (sum % 11);
+  if (rev === 10 || rev === 11) rev = 0;
+  if (rev !== parseInt(clean.charAt(9))) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(clean.charAt(i)) * (11 - i);
+  }
+  rev = 11 - (sum % 11);
+  if (rev === 10 || rev === 11) rev = 0;
+  if (rev !== parseInt(clean.charAt(10))) return false;
+
+  return true;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -20,9 +44,9 @@ export async function POST(request: Request) {
     }
 
     const cleanCpf = document.replace(/\D/g, '');
-    if (cleanCpf.length !== 11) {
+    if (!isValidCpf(cleanCpf)) {
       return NextResponse.json(
-        { code: 'INVALID_CPF', message: 'O CPF fornecido deve conter exatamente 11 dígitos.' },
+        { code: 'INVALID_CPF', message: 'O CPF fornecido é inválido. Por favor, verifique os dígitos.' },
         { status: 400 }
       );
     }

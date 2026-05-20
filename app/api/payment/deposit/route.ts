@@ -1,14 +1,4 @@
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';
-
-// In-memory store to keep track of simulated transactions in development/sandbox mode
-declare global {
-  var simulatedCharges: Map<string, { status: string; amount: number; plan?: string }> | undefined;
-}
-
-if (!globalThis.simulatedCharges) {
-  globalThis.simulatedCharges = new Map();
-}
 
 export async function POST(request: Request) {
   try {
@@ -46,25 +36,25 @@ export async function POST(request: Request) {
     const isMock = !apiKey || apiKey.includes('seu_') || !secretHash || secretHash.includes('seu_');
 
     if (isMock) {
-      // Simulate Pix charge generation
-      const txid = `sim_tx_${crypto.randomBytes(8).toString('hex')}`;
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes from now
+      // Simulate Pix charge generation using Web Crypto (no Node.js crypto import needed)
+      const randomBytes = new Uint8Array(8);
+      crypto.getRandomValues(randomBytes);
+      const txid = `sim_tx_${Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`;
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
-      // Generate a mock but authentic-looking BR Code Pix Copy-Paste string
-      const copyPaste = `00020101021226990014br.gov.bcb.pix2577pix-h.lytronpay.com/charges/${txid}5204000053039865405${amount.toFixed(2)}5802BR5920GanheMais Plataforma6009SAO PAULO62070503***6304${crypto.createHash('sha256').update(txid).digest('hex').substring(0, 4).toUpperCase()}`;
+      // Generate a mock BR Code Pix Copy-Paste string
+      const hashBytes = new TextEncoder().encode(txid);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', hashBytes);
+      const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+      const checksum = hashHex.substring(0, 4).toUpperCase();
 
-      // Save status in global simulation memory
-      globalThis.simulatedCharges?.set(txid, {
-        status: 'pending',
-        amount,
-        plan
-      });
+      const copyPaste = `00020101021226990014br.gov.bcb.pix2577pix.ganhemais.app/charges/${txid}5204000053039865405${amount.toFixed(2)}5802BR5920GanheMais Plataforma6009SAO PAULO62070503***6304${checksum}`;
 
       return NextResponse.json({
         txid,
         status: 'pending',
         amount,
-        qrcode: copyPaste, // The client will render this using a QR Code generator API
+        qrcode: copyPaste,
         copyPaste,
         expiresAt,
         isSimulated: true
@@ -87,16 +77,28 @@ export async function POST(request: Request) {
 
     const rawBody = JSON.stringify(payload);
 
-    // Generate SHA-256 signature
-    const signature = crypto
-      .createHmac('sha256', secretHash!)
-      .update(rawBody)
-      .digest('hex');
+    // Generate HMAC-SHA256 signature using Web Crypto API
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(secretHash);
+    const msgData = encoder.encode(rawBody);
+
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+
+    const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
+    const signature = Array.from(new Uint8Array(signatureBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
 
     const response = await fetch('https://api.lytronpay.com/api/v1/charges', {
       method: 'POST',
       headers: {
-        'Api-Access-Key': apiKey!,
+        'Api-Access-Key': apiKey,
         'Transaction-Hash': signature,
         'Content-Type': 'application/json'
       },
@@ -105,7 +107,7 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lytron Pay API Error Response:', errorText);
+      console.error('Gateway API Error Response:', errorText);
       let parsedError;
       try {
         parsedError = JSON.parse(errorText);
@@ -113,7 +115,7 @@ export async function POST(request: Request) {
         parsedError = { message: errorText };
       }
       return NextResponse.json(
-        { code: 'GATEWAY_ERROR', message: parsedError.message || 'Erro na comunicação com a Lytron Pay.', details: parsedError },
+        { code: 'GATEWAY_ERROR', message: parsedError.message || 'Erro na comunicação com o gateway de pagamento.', details: parsedError },
         { status: response.status }
       );
     }

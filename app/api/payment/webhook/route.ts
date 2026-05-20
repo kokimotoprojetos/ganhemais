@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';
 
 export async function POST(request: Request) {
   try {
@@ -20,11 +19,23 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify HMAC-SHA256 signature
-    const expectedSignature = crypto
-      .createHmac('sha256', webhookSecret)
-      .update(rawBody)
-      .digest('hex');
+    // Verify HMAC-SHA256 signature using Web Crypto API
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(webhookSecret);
+    const msgData = encoder.encode(rawBody);
+
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+
+    const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
+    const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
 
     if (signature !== expectedSignature) {
       console.error('Webhook signature mismatch!', { received: signature, expected: expectedSignature });
@@ -38,23 +49,10 @@ export async function POST(request: Request) {
     const payload = JSON.parse(rawBody);
     const { event, txid, amount, status } = payload;
 
-    console.log(`[Lytron Pay Webhook Verified] Event: ${event}, TxID: ${txid}, Amount: ${amount}, Status: ${status}`);
-
-    // If it's a simulated charge, update status in simulation memory
-    if (txid && (globalThis as any).simulatedCharges?.has(txid)) {
-      const charge = (globalThis as any).simulatedCharges.get(txid);
-      (globalThis as any).simulatedCharges.set(txid, {
-        ...charge,
-        status: status === 'paid' ? 'paid' : status
-      });
-    }
+    console.log(`[Webhook Verified] Event: ${event}, TxID: ${txid}, Amount: ${amount}, Status: ${status}`);
 
     // Process event types
     if (event === 'charge.paid') {
-      // In a production application with a persistent database:
-      // - Find the user associated with this txid
-      // - Credit their balance
-      // - Activate their subscription if applicable
       console.log(`[Payment Success] Deposit confirmed for txid: ${txid}, value: R$ ${amount}`);
     } else if (event === 'charge.refunded') {
       console.log(`[Payment Refunded] Pix refunded for txid: ${txid}`);

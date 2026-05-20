@@ -17,24 +17,12 @@ export async function GET(request: Request) {
     const isMock = !apiKey || apiKey.includes('seu_') || !secretHash || secretHash.includes('seu_');
 
     if (isMock) {
-      // Access simulated storage from global scope
-      const charge = (globalThis as any).simulatedCharges?.get(txid);
-
-      if (!charge) {
-        // Fallback for stateless serverless environments where memory map might be cleared/different
-        return NextResponse.json({
-          txid,
-          status: 'pending',
-          amount: 30.00, // Safe default mock amount
-          isSimulated: true
-        }, { status: 200 });
-      }
-
+      // In simulation mode, always return pending for simulated transactions
+      // The client-side simulation button handles the success transition directly
       return NextResponse.json({
         txid,
-        status: charge.status,
-        amount: charge.amount,
-        plan: charge.plan,
+        status: 'pending',
+        amount: 0,
         isSimulated: true
       }, { status: 200 });
     }
@@ -43,15 +31,15 @@ export async function GET(request: Request) {
     const response = await fetch(`https://api.lytronpay.com/api/v1/charges/${txid}`, {
       method: 'GET',
       headers: {
-        'Api-Access-Key': apiKey!,
+        'Api-Access-Key': apiKey,
       }
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`Lytron Pay API Status Error (${response.status}):`, errorText);
+      console.error(`Gateway API Status Error (${response.status}):`, errorText);
       return NextResponse.json(
-        { code: 'GATEWAY_ERROR', message: 'Erro ao consultar status na Lytron Pay.' },
+        { code: 'GATEWAY_ERROR', message: 'Erro ao consultar status do pagamento.' },
         { status: response.status }
       );
     }
@@ -59,7 +47,7 @@ export async function GET(request: Request) {
     const data = await response.json();
     return NextResponse.json({
       txid: data.txid,
-      status: data.status, // e.g., 'pending', 'paid', 'refunded'
+      status: data.status,
       amount: data.amount,
       paidAt: data.paidAt || data.paid_at,
     }, { status: 200 });
@@ -73,7 +61,7 @@ export async function GET(request: Request) {
   }
 }
 
-// Allows direct manual simulation of success by the frontend
+// Allows simulation of success by the frontend (sandbox mode only)
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -86,42 +74,19 @@ export async function POST(request: Request) {
       );
     }
 
-    const charge = (globalThis as any).simulatedCharges?.get(txid);
-
-    if (!charge) {
-      if (txid.startsWith('sim_tx_')) {
-        // Fallback for stateless serverless environments: return success directly
-        return NextResponse.json({
-          success: true,
-          txid,
-          status,
-          amount: 30.00,
-          isSimulated: true
-        }, { status: 200 });
-      }
-
-      return NextResponse.json(
-        { code: 'NOT_FOUND', message: 'Transação simulada não encontrada para atualização.' },
-        { status: 404 }
-      );
-    }
-
-    // Update status in global store
-    const updated = { ...charge, status };
-    (globalThis as any).simulatedCharges?.set(txid, updated);
-
+    // In sandbox/simulation mode, simply acknowledge the status update
+    // The actual balance/plan update happens on the client side
     return NextResponse.json({
       success: true,
       txid,
-      status: updated.status,
-      amount: updated.amount,
-      plan: updated.plan
+      status,
+      isSimulated: true
     }, { status: 200 });
 
   } catch (error: any) {
     console.error('Status route POST error:', error);
     return NextResponse.json(
-      { code: 'INTERNAL_SERVER_ERROR', message: error.message || 'Erro interno ao atualizar transação simulada.' },
+      { code: 'INTERNAL_SERVER_ERROR', message: error.message || 'Erro interno ao atualizar transação.' },
       { status: 500 }
     );
   }

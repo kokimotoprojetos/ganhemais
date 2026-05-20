@@ -19,6 +19,7 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
   const [isPlaying, setIsPlaying] = useState(false);
   const [timeLeft, setTimeLeft] = useState(30); // 30-second target countdown
   const [isFinished, setIsFinished] = useState(false);
+  const [isClaimed, setIsClaimed] = useState(false);
   const playerRef = useRef<any>(null);
 
   // Reset states when modal is opened/closed
@@ -27,6 +28,7 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
       setTimeLeft(30);
       setIsFinished(false);
       setIsPlaying(false);
+      setIsClaimed(false);
     }
   }, [isModalOpen]);
 
@@ -63,7 +65,7 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
 
   const handleClaimReward = () => {
     onComplete(reward);
-    setIsModalOpen(false);
+    setIsClaimed(true);
   };
 
   const handleCloseAttempt = () => {
@@ -161,7 +163,39 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-slate-900 border border-slate-800 rounded-[2.5rem] w-full max-w-5xl overflow-hidden shadow-2xl flex flex-col md:flex-row h-[85vh]"
             >
-              {/* Left Panel: Video Player */}
+              {isClaimed ? (
+                <div className="flex-grow flex flex-col items-center justify-center p-8 md:p-16 text-center space-y-8 bg-gradient-to-b from-slate-900 to-slate-950">
+                  <motion.div
+                    initial={{ scale: 0.3, opacity: 0 }}
+                    animate={{ scale: [1.2, 0.9, 1], opacity: 1 }}
+                    transition={{ duration: 0.6, type: 'spring' }}
+                    className="w-28 h-28 bg-emerald-500/10 border-4 border-emerald-500/30 text-emerald-400 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(16,185,129,0.2)]"
+                  >
+                    <CheckCircle2 className="w-14 h-14 stroke-[2.5]" />
+                  </motion.div>
+
+                  <div className="space-y-4 max-w-md">
+                    <h3 className="text-3xl font-black text-white tracking-tight">Parabéns! 🎉</h3>
+                    <p className="text-slate-300 font-medium leading-relaxed text-sm">
+                      Você assistiu aos 30 segundos obrigatórios e a sua recompensa de <strong className="text-emerald-400 text-base">R$ {reward.toFixed(2)}</strong> já foi adicionada à sua conta!
+                    </p>
+                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-wider">
+                      Saldo Atualizado no Painel
+                    </p>
+                  </div>
+
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-10 py-4.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-sm tracking-wide shadow-xl shadow-emerald-500/10 transition-all cursor-pointer"
+                  >
+                    VOLTAR ÀS TAREFAS
+                  </motion.button>
+                </div>
+              ) : (
+                <>
+                  {/* Left Panel: Video Player */}
               <div className="flex-1 bg-black relative flex items-center justify-center h-[50%] md:h-full">
                 <YouTube 
                   videoId={videoId} 
@@ -301,7 +335,9 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
                   )}
                 </div>
               </div>
-            </motion.div>
+            </>
+          )}
+        </motion.div>
           </div>
         )}
       </AnimatePresence>

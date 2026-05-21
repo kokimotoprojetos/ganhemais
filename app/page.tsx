@@ -28,6 +28,7 @@ import { YouTubeTask } from '@/components/youtube-task';
 import { PibTasks } from '@/components/pib-tasks';
 import { BookOpen } from 'lucide-react';
 import { DepositModal } from '@/components/deposit-modal';
+import { WithdrawModal } from '@/components/withdraw-modal';
 import { YOUTUBE_VIDEOS, PIB_TASKS } from '@/lib/tasks-data';
 
 type Tab = 'painel' | 'carteira' | 'planos' | 'convites';
@@ -110,6 +111,17 @@ const Page = () => {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [depositPredefinedAmount, setDepositPredefinedAmount] = useState<number | null>(null);
   const [depositPredefinedPlan, setDepositPredefinedPlan] = useState<'Silver' | 'Gold' | null>(null);
+
+  // Withdraw modal state
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+
+  const handleWithdrawSuccess = async (amount: number) => {
+    const success = await withdraw(amount);
+    if (success) {
+      triggerNotification(`Saque de R$ ${amount.toFixed(2)} solicitado com sucesso!`);
+    }
+    return success;
+  };
 
   const handleOpenDeposit = (amount: number | null = null, plan: 'Silver' | 'Gold' | null = null) => {
     setDepositPredefinedAmount(amount);
@@ -538,14 +550,7 @@ const Page = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                   <button 
-                    onClick={() => {
-                      if (stats.balance >= 20) {
-                        withdraw(stats.balance);
-                        triggerNotification('Saque solicitado com sucesso via PIX!');
-                      } else {
-                        triggerNotification('Saldo mínimo para saque: R$ 20,00');
-                      }
-                    }}
+                    onClick={() => setIsWithdrawModalOpen(true)}
                     className="flex items-center justify-center gap-3 md:gap-4 bg-slate-900 text-white p-5 md:p-6 rounded-2xl md:rounded-[2rem] font-black text-base md:text-lg shadow-2xl hover:bg-slate-800 transition-all group cursor-pointer"
                   >
                     <ArrowUpRight className="w-5 h-5 md:w-6 md:h-6 text-emerald-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform shrink-0" />
@@ -718,6 +723,7 @@ const Page = () => {
         </AnimatePresence>
       </main>
       <DepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} predefinedAmount={depositPredefinedAmount} predefinedPlan={depositPredefinedPlan} onSuccess={handleDepositSuccess} />
+      <WithdrawModal isOpen={isWithdrawModalOpen} onClose={() => setIsWithdrawModalOpen(false)} balance={stats.balance} onSuccess={handleWithdrawSuccess} />
       <AnimatePresence>
         {showNotification && (
           <motion.div 

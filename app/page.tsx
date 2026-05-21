@@ -232,6 +232,7 @@ export default function HomePage() {
     );
   }
 
+
   return (
     <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900 overflow-hidden">
       {/* Sidebar Navigation */}

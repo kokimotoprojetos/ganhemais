@@ -44,25 +44,17 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
   const { signIn } = useSignIn();
 
   // Handle direct OAuth social login — bypasses Account Portal, goes directly to Google/Apple
-  const handleSocialLogin = async (provider: 'oauth_google' | 'oauth_apple') => {
+  const handleSocialLogin = (provider: 'oauth_google' | 'oauth_apple') => {
     if (!signIn) return;
     setSocialLoading(provider === 'oauth_google' ? 'google' : 'apple');
-    setSocialError(null);
-    try {
-      const result = await (signIn as any).sso({
-        strategy: provider,
-        redirectUrl: `${window.location.origin}/sso-callback`,
-        redirectUrlComplete: `${window.location.origin}/`,
-      });
-      if (result?.error) {
-        setSocialError('Não foi possível conectar. Tente novamente.');
-      }
-    } catch (err: any) {
-      console.error('Social login error:', err);
-      setSocialError('Erro ao conectar com provedor social.');
-    } finally {
-      setSocialLoading(null);
-    }
+    // Trigger Clerk redirect; no result is returned
+    (signIn as any).authenticateWithRedirect({
+      strategy: provider,
+      redirectUrl: `${window.location.origin}/sso-callback`,
+      redirectUrlComplete: `${window.location.origin}/`,
+    });
+    // Reset loading after short delay to avoid stuck state if redirect is blocked
+    setTimeout(() => setSocialLoading(null), 500);
   };
 
   // Fetch the inviter username when referral code is present

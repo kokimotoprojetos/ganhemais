@@ -43,16 +43,13 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
       active = false;
     };
   }, [videoId]);
-
-  // Reset states when modal is opened/closed
-  useEffect(() => {
-    if (isModalOpen) {
-      setTimeLeft(30);
-      setIsFinished(false);
-      setIsPlaying(false);
-      setIsClaimed(false);
-    }
-  }, [isModalOpen]);
+  const openModal = () => {
+    setTimeLeft(30);
+    setIsFinished(false);
+    setIsPlaying(false);
+    setIsClaimed(false);
+    setIsModalOpen(true);
+  };
 
   // Countdown timer logic
   useEffect(() => {
@@ -134,6 +131,7 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
       <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden group hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300 flex flex-col justify-between h-full border-b-4">
         <div className="relative aspect-video bg-slate-900 overflow-hidden flex items-center justify-center">
           {/* Cover image styling with video thumbnail */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`} 
             alt={displayTitle}
@@ -153,7 +151,7 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => setIsModalOpen(true)}
+                onClick={openModal}
                 className="w-16 h-16 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-2xl pl-1 hover:bg-emerald-600 transition-colors"
               >
                 <Play className="w-8 h-8 fill-current" />
@@ -176,7 +174,7 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
             </span>
             {!isCompleted && (
               <button 
-                onClick={() => setIsModalOpen(true)}
+                onClick={openModal}
                 className="text-xs font-black text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-4 py-2.5 rounded-xl transition-all"
               >
                 ASSISTIR AGORA

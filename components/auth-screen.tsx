@@ -175,7 +175,7 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
   };
 
   // Reusable social buttons block
-  const SocialButtons = () => {
+  const renderSocialButtons = () => {
     const isClerkLoaded = isSignUp ? !!signUp : !!signIn;
     return (
       <div className="space-y-3 mb-4">
@@ -222,7 +222,7 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
   };
 
   // Reusable toggle ENTRAR / CADASTRAR
-  const TabToggle = () => (
+  const renderTabToggle = () => (
     <div className="flex w-full bg-slate-950/60 rounded-2xl p-1 mb-5 border border-slate-800">
       <button
         onClick={() => { setIsSignUp(false); setSocialError(null); }}
@@ -310,8 +310,8 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
                   </p>
                 </div>
               </div>
-              <TabToggle />
-              <SocialButtons />
+              {renderTabToggle()}
+              {renderSocialButtons()}
               {isSignUp ? (
                 <SignUp appearance={clerkAppearance} forceRedirectUrl="/" fallbackRedirectUrl="/" />
               ) : (
@@ -334,8 +334,8 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
             </div>
             <span className="text-2xl font-black tracking-tighter italic text-white">GanheMais</span>
           </div>
-          <TabToggle />
-          <SocialButtons />
+          {renderTabToggle()}
+          {renderSocialButtons()}
           {isSignUp ? (
             <SignUp appearance={clerkAppearance} forceRedirectUrl="/" fallbackRedirectUrl="/" />
           ) : (

@@ -40,12 +40,20 @@ const Page = () => {
   const [showNotification, setShowNotification] = useState<string | null>(null);
   const [pendingRef, setPendingRef] = useState<string | null>(null);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const handleAuthSuccess = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('ganhemais_pending_ref');
+    }
+    setPendingRef(null);
+  }, []);
+
   // Clear referral after login success
   useEffect(() => {
     if (isAuthenticated && pendingRef) {
-      handleAuthSuccess();
+      const timer = setTimeout(() => handleAuthSuccess(), 0);
+      return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, pendingRef]);
+  }, [isAuthenticated, pendingRef, handleAuthSuccess]);
 
   // Show error UI if Clerk fails to load within timeout
   useEffect(() => {
@@ -74,27 +82,25 @@ const Page = () => {
 
   // Capture referral code on mount
   useEffect(() => {
+    let timer: NodeJS.Timeout;
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const ref = urlParams.get('ref');
       if (ref) {
         localStorage.setItem('ganhemais_pending_ref', ref);
-        setPendingRef(ref);
+        timer = setTimeout(() => setPendingRef(ref), 0);
       } else {
         const savedRef = localStorage.getItem('ganhemais_pending_ref');
         if (savedRef) {
-          setPendingRef(savedRef);
+          timer = setTimeout(() => setPendingRef(savedRef), 0);
         }
       }
     }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
-  const handleAuthSuccess = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('ganhemais_pending_ref');
-    }
-    setPendingRef(null);
-  };
 
   const isDayUnlocked = useCallback((dayNum: number): boolean => {
     if (dayNum === 1) return true;

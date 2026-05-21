@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, 
@@ -79,8 +79,20 @@ export function DepositModal({ isOpen, onClose, onSuccess, predefinedAmount, pre
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
+  const stopPolling = useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  }, []);
+
   // Sync predefined values if modal opens with different context
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  const [prevPredefinedAmount, setPrevPredefinedAmount] = useState(predefinedAmount);
+
+  if (isOpen !== prevIsOpen || predefinedAmount !== prevPredefinedAmount) {
+    setPrevIsOpen(isOpen);
+    setPrevPredefinedAmount(predefinedAmount);
     if (isOpen) {
       setStep('input');
       setAmount(predefinedAmount ? predefinedAmount.toString() : '30.00');
@@ -89,7 +101,15 @@ export function DepositModal({ isOpen, onClose, onSuccess, predefinedAmount, pre
       setPaymentData(null);
       setIsCopied(false);
     }
-  }, [isOpen, predefinedAmount]);
+  }
+
+  // Refs for callbacks in effect to prevent resetting the 4-second polling timer
+  const onSuccessRef = useRef(onSuccess);
+  const predefinedPlanRef = useRef(predefinedPlan);
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+    predefinedPlanRef.current = predefinedPlan;
+  });
 
   // Formatting CPF as user types (XXX.XXX.XXX-XX)
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,7 +145,7 @@ export function DepositModal({ isOpen, onClose, onSuccess, predefinedAmount, pre
           if (data.status === 'paid') {
             stopPolling();
             setStep('success');
-            onSuccess(paymentData.amount, predefinedPlan || undefined);
+            onSuccessRef.current(paymentData.amount, predefinedPlanRef.current || undefined);
           }
         }
       } catch (err) {
@@ -137,14 +157,7 @@ export function DepositModal({ isOpen, onClose, onSuccess, predefinedAmount, pre
     pollingRef.current = setInterval(checkStatus, 4000);
 
     return () => stopPolling();
-  }, [step, paymentData]);
-
-  const stopPolling = () => {
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
-    }
-  };
+  }, [step, paymentData, stopPolling]);
 
   // Format time remaining
   const formatTime = (seconds: number) => {
@@ -430,6 +443,7 @@ export function DepositModal({ isOpen, onClose, onSuccess, predefinedAmount, pre
               {/* QR Code Canvas */}
               <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-[2rem] shadow-inner relative group">
                 <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(paymentData.copyPaste)}`} 
                     alt="Pix QR Code" 

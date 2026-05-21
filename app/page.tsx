@@ -84,10 +84,8 @@ const Page = () => {
         localStorage.setItem('ganhemais_pending_ref', ref);
         timer = setTimeout(() => setPendingRef(ref), 0);
       } else {
-        const savedRef = localStorage.getItem('ganhemais_pending_ref');
-        if (savedRef) {
-          timer = setTimeout(() => setPendingRef(savedRef), 0);
-        }
+        // If there is no ref parameter in the URL, we show the standard login UI
+        timer = setTimeout(() => setPendingRef(null), 0);
       }
     }
     return () => {

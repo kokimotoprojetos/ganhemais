@@ -265,7 +265,7 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl pt-4">
               {[
-                { icon: Wallet, title: 'Bônus de Adesão', desc: 'Sua indicação foi computada com sucesso no cadastro.' },
+                { icon: Wallet, title: 'Bônus de R$ 3,00 na Adesão', desc: 'Você já começa com R$ 3,00 de saldo na hora!' },
                 { icon: Play, title: 'R$ 0,50 a R$ 2,00', desc: 'Por cada tarefa diária concluída.', fill: true },
                 { icon: CheckCircle2, title: 'Check-in Diário', desc: 'Resgate recompensas diárias baseadas no seu nível.' },
                 { icon: TrendingUp, title: 'Saques Imediatos', desc: 'Sem burocracia ou limites abusivos para retirada.' },

@@ -160,8 +160,8 @@ export function useEarnings() {
           const newProfile = {
             id: uid,
             email: userEmail,
-            balance: 0.00,
-            total_earned: 0.00,
+            balance: invitedBy ? 3.00 : 0.00,
+            total_earned: invitedBy ? 3.00 : 0.00,
             plan: 'Basic',
             invited_by: invitedBy,
             referral_code: referralCode,
@@ -184,8 +184,8 @@ export function useEarnings() {
 
           if (active) {
             setStats({
-              balance: 0.00,
-              totalEarned: 0.00,
+              balance: invitedBy ? 3.00 : 0.00,
+              totalEarned: invitedBy ? 3.00 : 0.00,
               lastCheckIn: null,
               tasksCompleted: 0,
               invites: 0,

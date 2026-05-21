@@ -19,6 +19,13 @@ export interface UserStats {
   email?: string;
 }
 
+export interface TeamMember {
+  email: string;
+  plan: 'Basic' | 'Silver' | 'Gold';
+  balance: number;
+  created_at?: string;
+}
+
 export function useEarnings() {
   const [stats, setStats] = useState<UserStats>({
     balance: 0,
@@ -33,6 +40,8 @@ export function useEarnings() {
     referralCode: '',
     email: '',
   });
+
+  const [team, setTeam] = useState<TeamMember[]>([]);
 
   const { user, isLoaded, isSignedIn } = useUser();
   const { signOut } = useClerk();
@@ -81,13 +90,22 @@ export function useEarnings() {
 
         if (profile) {
           if (!active) return;
-          // Count invites
-          const { count, error: inviteError } = await supabase
+          // Count invites and fetch team
+          const { data: teamData, error: teamError } = await supabase
             .from('profiles')
-            .select('id', { count: 'exact', head: true })
+            .select('email, plan, balance, created_at')
             .eq('invited_by', uid);
 
-          const inviteCount = inviteError ? 0 : (count || 0);
+          const inviteCount = teamError ? 0 : (teamData?.length || 0);
+
+          if (!teamError && teamData) {
+            setTeam(teamData.map((m: any) => ({
+              email: m.email || '',
+              plan: (m.plan as 'Basic' | 'Silver' | 'Gold') || 'Basic',
+              balance: Number(m.balance || 0),
+              created_at: m.created_at || ''
+            })));
+          }
 
           setStats({
             balance: Number(profile.balance || 0),
@@ -124,9 +142,9 @@ export function useEarnings() {
 
               if (inviterProfile) {
                 invitedBy = inviterProfile.id;
-                // Credit R$ 2,00 to the inviter
-                const newInviterBalance = Number(inviterProfile.balance || 0) + 2.00;
-                const newInviterTotal = Number(inviterProfile.total_earned || 0) + 2.00;
+                // Credit R$ 0,50 to the inviter
+                const newInviterBalance = Number(inviterProfile.balance || 0) + 0.50;
+                const newInviterTotal = Number(inviterProfile.total_earned || 0) + 0.50;
                 await supabase
                   .from('profiles')
                   .update({
@@ -291,8 +309,8 @@ export function useEarnings() {
     // Legacy simulator. In Supabase, new user creates dynamic referral link bonuses.
     // But keeping it as client-side simulator if they click the test button in dev mode.
     if (!userId) return;
-    const newBalance = stats.balance + 2.0;
-    const newTotal = stats.totalEarned + 2.0;
+    const newBalance = stats.balance + 0.50;
+    const newTotal = stats.totalEarned + 0.50;
     const newInvites = stats.invites + 1;
 
     setStats(prev => ({
@@ -306,6 +324,21 @@ export function useEarnings() {
       balance: newBalance,
       total_earned: newTotal,
     });
+
+    // Simulate adding a team member to local state
+    const simulatedEmail = `convidado_simulado${newInvites}@exemplo.com`;
+    const plans: ('Basic' | 'Silver' | 'Gold')[] = ['Basic', 'Silver', 'Gold'];
+    const randomPlan = plans[Math.floor(Math.random() * plans.length)];
+    
+    setTeam(prev => [
+      ...prev,
+      {
+        email: simulatedEmail,
+        plan: randomPlan,
+        balance: randomPlan === 'Basic' ? 0.00 : randomPlan === 'Silver' ? 29.90 : 97.00,
+        created_at: new Date().toISOString()
+      }
+    ]);
   };
 
   const withdraw = async (amount: number) => {
@@ -391,6 +424,7 @@ export function useEarnings() {
 
   return {
     stats,
+    team,
     addEarning,
     completeTask,
     dailyCheckIn,

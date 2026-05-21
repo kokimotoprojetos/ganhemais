@@ -43,7 +43,9 @@ export function WithdrawModal({ isOpen, onClose, balance, onSuccess }: WithdrawM
   const netAmount = Math.max(0, numAmount - feeAmount);
 
   // Sync / Reset when modal opens
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
     if (isOpen) {
       setStep('input');
       setAmount(balance.toFixed(2)); // Default to full balance
@@ -51,7 +53,7 @@ export function WithdrawModal({ isOpen, onClose, balance, onSuccess }: WithdrawM
       setFullName('');
       setValidationError(null);
     }
-  }, [isOpen, balance]);
+  }
 
   // Format Pix key according to selected type
   const handlePixKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {

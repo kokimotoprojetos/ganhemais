@@ -20,7 +20,8 @@ import {
   Star,
   Zap,
   Lock,
-  LogOut
+  LogOut,
+  Users
 } from 'lucide-react';
 import { useEarnings } from '@/hooks/use-earnings';
 import { AuthScreen } from '@/components/auth-screen';
@@ -31,12 +32,12 @@ import { DepositModal } from '@/components/deposit-modal';
 import { WithdrawModal } from '@/components/withdraw-modal';
 import { YOUTUBE_VIDEOS, PIB_TASKS } from '@/lib/tasks-data';
 
-type Tab = 'painel' | 'carteira' | 'planos' | 'convites';
+type Tab = 'painel' | 'carteira' | 'planos' | 'convites' | 'equipe';
 
 const Page = () => {
   // Referral handling moved down
 
-  const { stats, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, upgradePlan, deposit, isAuthenticated, logout } = useEarnings();
+  const { stats, team, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, upgradePlan, deposit, isAuthenticated, logout } = useEarnings();
   const [activeTab, setActiveTab] = useState<Tab>('painel');
   const [showNotification, setShowNotification] = useState<string | null>(null);
   const [pendingRef, setPendingRef] = useState<string | null>(null);
@@ -181,7 +182,7 @@ const Page = () => {
 
   const handleInvite = async () => {
     await inviteUser();
-    triggerNotification('Novo convite simulado: +R$ 2,00!');
+    triggerNotification('Novo convite simulado: +R$ 0,50!');
   };
 
   const copyRefLink = () => {
@@ -224,7 +225,13 @@ const Page = () => {
           <span className="text-xl font-black tracking-tighter italic">GanheMais</span>
         </div>
         <nav className="space-y-2 px-4">
-          {[{ id: 'painel', icon: LayoutDashboard, label: 'Painel' }, { id: 'carteira', icon: CreditCard, label: 'Carteira' }, { id: 'planos', icon: Rocket, label: 'Planos' }, { id: 'convites', icon: UserPlus, label: 'Convites' }].map((tab) => (
+          {[
+            { id: 'painel', icon: LayoutDashboard, label: 'Painel' },
+            { id: 'carteira', icon: CreditCard, label: 'Carteira' },
+            { id: 'planos', icon: Rocket, label: 'Planos' },
+            { id: 'convites', icon: UserPlus, label: 'Convites' },
+            { id: 'equipe', icon: Users, label: 'Equipe' }
+          ].map((tab) => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id as Tab)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab === tab.id ? 'bg-emerald-50 text-emerald-700' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'}`}>
               <tab.icon className="w-5 h-5" />
               {tab.label}
@@ -247,7 +254,13 @@ const Page = () => {
       </aside>
       {/* Mobile Bottom Navigation Bar */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 flex justify-around py-3 md:hidden shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
-        {[{ id: 'painel', icon: LayoutDashboard, label: 'Painel' }, { id: 'carteira', icon: CreditCard, label: 'Carteira' }, { id: 'planos', icon: Rocket, label: 'Planos' }, { id: 'convites', icon: UserPlus, label: 'Convites' }].map((tab) => (
+        {[
+          { id: 'painel', icon: LayoutDashboard, label: 'Painel' },
+          { id: 'carteira', icon: CreditCard, label: 'Carteira' },
+          { id: 'planos', icon: Rocket, label: 'Planos' },
+          { id: 'convites', icon: UserPlus, label: 'Convites' },
+          { id: 'equipe', icon: Users, label: 'Equipe' }
+        ].map((tab) => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id as Tab)} className={`flex flex-col items-center gap-1 transition-all cursor-pointer ${activeTab === tab.id ? 'text-emerald-600 font-black scale-105' : 'text-slate-400 font-medium'}`}>
             <tab.icon className="w-5 h-5 shrink-0" />
             <span className="text-[10px] tracking-tight">{tab.label}</span>
@@ -270,6 +283,7 @@ const Page = () => {
                 {activeTab === 'carteira' && 'Minha Carteira'}
                 {activeTab === 'planos' && 'Planos de Upgrade'}
                 {activeTab === 'convites' && 'Indique e Ganhe'}
+                {activeTab === 'equipe' && 'Minha Equipe'}
               </h1>
               <p className="text-slate-500 font-medium text-sm">Bem-vindo de volta, investidor.</p>
             </div>
@@ -291,6 +305,7 @@ const Page = () => {
               {activeTab === 'carteira' && 'Minha Carteira'}
               {activeTab === 'planos' && 'Planos de Upgrade'}
               {activeTab === 'convites' && 'Indique e Ganhe'}
+              {activeTab === 'equipe' && 'Minha Equipe'}
             </h2>
             <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1 flex items-center gap-2">Saldo: <span className="text-emerald-600">R$ {stats.balance.toFixed(2)}</span> • Plano: <span className="text-indigo-600">{stats.plan}</span></p>
           </div>
@@ -678,7 +693,7 @@ const Page = () => {
                   <div className="w-16 h-16 md:w-24 md:h-24 bg-white/10 rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center mx-auto mb-6 md:mb-8 backdrop-blur-xl border border-white/20">
                     <UserPlus className="w-8 h-8 md:w-10 md:h-10" />
                   </div>
-                  <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">Ganhe R$ 2,00 na Hora!</h2>
+                  <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">Ganhe R$ 0,50 na Hora!</h2>
                   <p className="text-emerald-100 text-sm md:text-lg mb-8 md:mb-12 max-w-md mx-auto font-medium leading-relaxed opacity-90">
                     Cada amigo que entrar pelo seu link você ganha dinheiro instantâneo no seu saldo disponível.
                   </p>
@@ -701,7 +716,7 @@ const Page = () => {
                       <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-emerald-300">Amigos Concluintes</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-3xl sm:text-4xl font-black mb-1">R$ {(stats.invites * 2).toFixed(2)}</p>
+                      <p className="text-3xl sm:text-4xl font-black mb-1">R$ {(stats.invites * 0.50).toFixed(2)}</p>
                       <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-emerald-300">Total Ganho</p>
                     </div>
                   </div>
@@ -717,6 +732,202 @@ const Page = () => {
                 {/* Background Shapes */}
                 <div className="absolute top-0 left-0 w-64 h-64 bg-emerald-500 rounded-full opacity-30 -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
                 <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-400 rounded-full opacity-20 translate-x-1/2 translate-y-1/2 blur-3xl"></div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'equipe' && (
+            <motion.div 
+              key="equipe"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="max-w-4xl mx-auto w-full space-y-8"
+            >
+              {/* Stats Section */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                {/* Membros Card */}
+                <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-md flex items-center gap-4">
+                  <div className="bg-emerald-50 w-12 h-12 rounded-2xl flex items-center justify-center text-emerald-600 shrink-0">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider">Total de Convidados</p>
+                    <p className="text-2xl font-black text-slate-900 mt-1">{team.length}</p>
+                  </div>
+                </div>
+
+                {/* Ganhos Card */}
+                <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-md flex items-center gap-4">
+                  <div className="bg-indigo-50 w-12 h-12 rounded-2xl flex items-center justify-center text-indigo-600 shrink-0">
+                    <TrendingUp className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider">Ganhos da Equipe</p>
+                    <p className="text-2xl font-black text-emerald-600 mt-1">R$ {(team.length * 0.50).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                </div>
+
+                {/* Comissao Card */}
+                <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-md flex items-center gap-4">
+                  <div className="bg-amber-50 w-12 h-12 rounded-2xl flex items-center justify-center text-amber-600 shrink-0">
+                    <Gift className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider">Comissão por Cadastro</p>
+                    <p className="text-2xl font-black text-amber-600 mt-1">R$ 0,50</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Team Members List */}
+              <div className="bg-white border border-slate-200 rounded-[2rem] p-6 md:p-10 shadow-xl">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Membros da sua Equipe</h3>
+                    <p className="text-xs font-medium text-slate-500 mt-0.5">Pessoas que se cadastraram no aplicativo usando seu link de indicação.</p>
+                  </div>
+                  {team.length > 0 && (
+                    <span className="bg-emerald-50 text-emerald-800 text-xs font-black px-3.5 py-1.5 rounded-full border border-emerald-100 uppercase tracking-widest shrink-0">
+                      VIP Ativo
+                    </span>
+                  )}
+                </div>
+
+                {team.length === 0 ? (
+                  <div className="text-center py-12 flex flex-col items-center max-w-md mx-auto space-y-6">
+                    <div className="w-20 h-20 bg-slate-50 border-2 border-slate-100 text-slate-300 rounded-[1.8rem] flex items-center justify-center shadow-inner">
+                      <Users className="w-10 h-10" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-black text-slate-800">Sua equipe está vazia</h4>
+                      <p className="text-slate-500 text-sm font-medium leading-relaxed mt-2">
+                        Você ainda não possui convidados registrados. Indique amigos e receba **R$ 0,50** na hora por cada cadastro realizado!
+                      </p>
+                    </div>
+                    <div className="w-full bg-slate-50 border border-slate-200/60 p-2 rounded-2xl flex items-center gap-2">
+                      <div className="flex-1 px-3 text-left font-bold text-xs overflow-hidden text-ellipsis whitespace-nowrap text-slate-500">
+                        {typeof window !== 'undefined' ? `${window.location.host}/?ref=${stats.referralCode || ''}` : `ganhemais.app/?ref=${stats.referralCode || ''}`}
+                      </div>
+                      <button 
+                        onClick={copyRefLink}
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-3 rounded-xl font-black text-xs transition-all flex items-center gap-1.5 shrink-0 cursor-pointer shadow-md shadow-emerald-500/10"
+                      >
+                        <Copy className="w-3.5 h-3.5" /> COPIAR LINK
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto -mx-6 px-6">
+                    <div className="inline-block min-w-full align-middle">
+                      {/* Desktop Table View */}
+                      <table className="min-w-full divide-y divide-slate-100 hidden sm:table">
+                        <thead>
+                          <tr>
+                            <th scope="col" className="py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">Convidado</th>
+                            <th scope="col" className="py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-wider">Plano</th>
+                            <th scope="col" className="py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-wider">Data de Cadastro</th>
+                            <th scope="col" className="py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-wider">Comissão ganha</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {team.map((member, idx) => {
+                            const [localPart, domain] = (member.email || '').split('@');
+                            const maskedEmail = domain 
+                              ? (localPart.length <= 2 
+                                  ? `${localPart}***@${domain}` 
+                                  : `${localPart.substring(0, 2)}***@${domain}`) 
+                              : 'usu***@exemplo.com';
+
+                            const planColors = {
+                              Basic: 'bg-slate-100 text-slate-800 border-slate-200',
+                              Silver: 'bg-indigo-50 text-indigo-800 border-indigo-100',
+                              Gold: 'bg-amber-50 text-amber-800 border-amber-100'
+                            };
+
+                            const formattedDate = member.created_at
+                              ? new Date(member.created_at).toLocaleDateString('pt-BR', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric'
+                                })
+                              : 'Recente';
+
+                            return (
+                              <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="py-4 whitespace-nowrap">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-xs">
+                                      {maskedEmail.substring(0, 2).toUpperCase()}
+                                    </div>
+                                    <span className="font-bold text-slate-800 text-sm">{maskedEmail}</span>
+                                  </div>
+                                </td>
+                                <td className="py-4 text-center whitespace-nowrap">
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black border ${planColors[member.plan as keyof typeof planColors] || planColors.Basic}`}>
+                                    {member.plan}
+                                  </span>
+                                </td>
+                                <td className="py-4 text-center whitespace-nowrap text-xs font-bold text-slate-400">
+                                  {formattedDate}
+                                </td>
+                                <td className="py-4 text-right whitespace-nowrap">
+                                  <span className="text-sm font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full">+R$ 0,50</span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+
+                      {/* Mobile Cards View */}
+                      <div className="sm:hidden space-y-4">
+                        {team.map((member, idx) => {
+                          const [localPart, domain] = (member.email || '').split('@');
+                          const maskedEmail = domain 
+                            ? (localPart.length <= 2 
+                                ? `${localPart}***@${domain}` 
+                                : `${localPart.substring(0, 2)}***@${domain}`) 
+                            : 'usu***@exemplo.com';
+
+                          const planColors = {
+                            Basic: 'bg-slate-100 text-slate-800 border-slate-200',
+                            Silver: 'bg-indigo-50 text-indigo-800 border-indigo-100',
+                            Gold: 'bg-amber-50 text-amber-800 border-amber-100'
+                          };
+
+                          const formattedDate = member.created_at
+                            ? new Date(member.created_at).toLocaleDateString('pt-BR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric'
+                              })
+                            : 'Recente';
+
+                          return (
+                            <div key={idx} className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-3.5 shadow-sm">
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-7 h-7 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-xs">
+                                    {maskedEmail.substring(0, 2).toUpperCase()}
+                                  </div>
+                                  <span className="font-bold text-slate-800 text-xs">{maskedEmail}</span>
+                                </div>
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black border ${planColors[member.plan as keyof typeof planColors] || planColors.Basic}`}>
+                                  {member.plan}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center text-[10px] pt-2 border-t border-slate-100/60 font-bold text-slate-400">
+                                <span>Cadastrado em {formattedDate}</span>
+                                <span className="text-[11px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">+R$ 0,50</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}

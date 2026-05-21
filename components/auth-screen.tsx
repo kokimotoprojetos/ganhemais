@@ -13,28 +13,6 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-const Clover = ({ className = 'w-6 h-6' }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="cloverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#34d399" />
-        <stop offset="100%" stopColor="#059669" />
-      </linearGradient>
-    </defs>
-    {/* Stem */}
-    <path 
-      d="M12 12C12 15 13.5 18.5 16 19.5C16.3 19.6 16.5 19.2 16.2 18.9C13.8 17.8 13 15 13 12Z" 
-      fill="url(#cloverGrad)" 
-    />
-    {/* 4 leaves rotated */}
-    <g fill="url(#cloverGrad)">
-      <path d="M12 12C10.5 9.5 8 9.5 8 7C8 4.5 10.5 4.5 12 6.5C13.5 4.5 16 4.5 16 7C16 9.5 13.5 9.5 12 12Z" />
-      <path d="M12 12C10.5 9.5 8 9.5 8 7C8 4.5 10.5 4.5 12 6.5C13.5 4.5 16 4.5 16 7C16 9.5 13.5 9.5 12 12Z" transform="rotate(90 12 12)" />
-      <path d="M12 12C10.5 9.5 8 9.5 8 7C8 4.5 10.5 4.5 12 6.5C13.5 4.5 16 4.5 16 7C16 9.5 13.5 9.5 12 12Z" transform="rotate(180 12 12)" />
-      <path d="M12 12C10.5 9.5 8 9.5 8 7C8 4.5 10.5 4.5 12 6.5C13.5 4.5 16 4.5 16 7C16 9.5 13.5 9.5 12 12Z" transform="rotate(270 12 12)" />
-    </g>
-  </svg>
-);
 
 interface AuthScreenProps {
   pendingRef: string | null;
@@ -273,8 +251,8 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
           {/* Left info pane */}
           <div className="lg:col-span-7 flex flex-col text-left space-y-6 lg:pr-8">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold shadow-md shadow-emerald-500/10">
-                <Clover className="w-4 h-4 fill-current" />
+              <div className="w-8 h-8 flex items-center justify-center shrink-0">
+                <img src="/ICONE.png" alt="GanheMais Logo" className="w-full h-full object-contain" />
               </div>
               <span className="text-lg font-black tracking-tighter italic text-white">GanheMais</span>
             </div>
@@ -348,8 +326,8 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
           className="w-full max-w-md bg-slate-900/70 border border-slate-800 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-[0_30px_70px_rgba(0,0,0,0.8)] z-10 flex flex-col border-b-4 border-b-emerald-500"
         >
           <div className="flex items-center justify-center gap-2 mb-6">
-            <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-emerald-500/20">
-              <Clover className="w-6 h-6 fill-current" />
+            <div className="w-10 h-10 flex items-center justify-center shrink-0">
+              <img src="/ICONE.png" alt="GanheMais Logo" className="w-full h-full object-contain" />
             </div>
             <span className="text-2xl font-black tracking-tighter italic text-white">GanheMais</span>
           </div>

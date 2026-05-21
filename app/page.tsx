@@ -24,28 +24,7 @@ import {
   Users
 } from 'lucide-react';
 
-const Clover = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="cloverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#34d399" />
-        <stop offset="100%" stopColor="#059669" />
-      </linearGradient>
-    </defs>
-    {/* Stem */}
-    <path 
-      d="M12 12C12 15 13.5 18.5 16 19.5C16.3 19.6 16.5 19.2 16.2 18.9C13.8 17.8 13 15 13 12Z" 
-      fill="url(#cloverGrad)" 
-    />
-    {/* 4 leaves rotated */}
-    <g fill="url(#cloverGrad)">
-      <path d="M12 12C10.5 9.5 8 9.5 8 7C8 4.5 10.5 4.5 12 6.5C13.5 4.5 16 4.5 16 7C16 9.5 13.5 9.5 12 12Z" />
-      <path d="M12 12C10.5 9.5 8 9.5 8 7C8 4.5 10.5 4.5 12 6.5C13.5 4.5 16 4.5 16 7C16 9.5 13.5 9.5 12 12Z" transform="rotate(90 12 12)" />
-      <path d="M12 12C10.5 9.5 8 9.5 8 7C8 4.5 10.5 4.5 12 6.5C13.5 4.5 16 4.5 16 7C16 9.5 13.5 9.5 12 12Z" transform="rotate(180 12 12)" />
-      <path d="M12 12C10.5 9.5 8 9.5 8 7C8 4.5 10.5 4.5 12 6.5C13.5 4.5 16 4.5 16 7C16 9.5 13.5 9.5 12 12Z" transform="rotate(270 12 12)" />
-    </g>
-  </svg>
-);
+
 import { useEarnings } from '@/hooks/use-earnings';
 import { AuthScreen } from '@/components/auth-screen';
 import { YouTubeTask } from '@/components/youtube-task';
@@ -240,8 +219,8 @@ const Page = () => {
     <>
       <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col h-screen fixed left-0 top-0">
         <div className="p-8 flex items-center gap-2">
-          <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
-            <Clover className="w-5 h-5 fill-current" />
+          <div className="w-8 h-8 flex items-center justify-center shrink-0">
+            <img src="/ICONE.png" alt="GanheMais Logo" className="w-full h-full object-contain" />
           </div>
           <span className="text-xl font-black tracking-tighter italic">GanheMais</span>
         </div>
@@ -293,8 +272,8 @@ const Page = () => {
         <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-10">
           <div className="flex items-center justify-between w-full sm:w-auto">
             <div className="flex items-center gap-2 md:hidden">
-              <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
-                <Clover className="w-5 h-5 fill-current" />
+              <div className="w-8 h-8 flex items-center justify-center shrink-0">
+                <img src="/ICONE.png" alt="GanheMais Logo" className="w-full h-full object-contain" />
               </div>
               <span className="text-xl font-black tracking-tighter italic">GanheMais</span>
             </div>

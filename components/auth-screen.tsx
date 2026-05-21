@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useSignIn, useSignUp, SignIn, SignUp } from '@clerk/nextjs';
+import { useSignIn, useSignUp, SignIn, SignUp, useClerk } from '@clerk/nextjs';
 import { motion } from 'motion/react';
 import { 
   Zap, 
@@ -41,14 +41,14 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
   const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
   const [socialError, setSocialError] = useState<string | null>(null);
 
+  const clerk = useClerk();
   const { signIn } = useSignIn();
   const { signUp } = useSignUp();
 
   // Handle direct OAuth social login — bypasses Account Portal, goes directly to Google/Apple
   const handleSocialLogin = async (provider: 'oauth_google' | 'oauth_apple') => {
     setSocialError(null);
-    const isClerkLoaded = isSignUp ? !!signUp : !!signIn;
-    if (!isClerkLoaded) return;
+    if (!clerk.loaded) return;
 
     try {
       setSocialLoading(provider === 'oauth_google' ? 'google' : 'apple');
@@ -59,21 +59,13 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
       }, 8000);
 
       if (isSignUp) {
-        if (!signUp) {
-          clearTimeout(fallbackTimer);
-          return;
-        }
-        await (signUp as any).authenticateWithRedirect({
+        await clerk.client.signUp.authenticateWithRedirect({
           strategy: provider,
           redirectUrl: `${window.location.origin}/sso-callback`,
           redirectUrlComplete: `${window.location.origin}/`,
         });
       } else {
-        if (!signIn) {
-          clearTimeout(fallbackTimer);
-          return;
-        }
-        await (signIn as any).authenticateWithRedirect({
+        await clerk.client.signIn.authenticateWithRedirect({
           strategy: provider,
           redirectUrl: `${window.location.origin}/sso-callback`,
           redirectUrlComplete: `${window.location.origin}/`,
@@ -176,7 +168,7 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
 
   // Reusable social buttons block
   const renderSocialButtons = () => {
-    const isClerkLoaded = isSignUp ? !!signUp : !!signIn;
+    const isClerkLoaded = clerk.loaded;
     return (
       <div className="space-y-3 mb-4">
         {/* Google Button */}

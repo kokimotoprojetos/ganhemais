@@ -39,7 +39,6 @@ const Page = () => {
   const [activeTab, setActiveTab] = useState<Tab>('painel');
   const [showNotification, setShowNotification] = useState<string | null>(null);
   const [pendingRef, setPendingRef] = useState<string | null>(null);
-  const [loadingTimeout, setLoadingTimeout] = useState(false);
   const handleAuthSuccess = useCallback(() => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('ganhemais_pending_ref');
@@ -54,13 +53,6 @@ const Page = () => {
       return () => clearTimeout(timer);
     }
   }, [isAuthenticated, pendingRef, handleAuthSuccess]);
-
-  // Show error UI if Clerk fails to load within timeout
-  useEffect(() => {
-    if (!isLoading) return;
-    const timer = setTimeout(() => setLoadingTimeout(true), 8000);
-    return () => clearTimeout(timer);
-  }, [isLoading]);
 
   const [activeDay, setActiveDay] = useState<number>(() => {
     if (typeof window !== 'undefined') {
@@ -192,22 +184,13 @@ const Page = () => {
       <div className="min-h-screen bg-slate-950 flex items-center justify-center relative overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-emerald-500 rounded-full opacity-20 blur-[100px] pointer-events-none"></div>
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500 rounded-full opacity-15 blur-[120px] pointer-events-none"></div>
-        <div className="z-10 max-w-md w-full mx-4 bg-slate-900/80 border border-yellow-500/30 backdrop-blur-xl p-8 rounded-[2rem] shadow-2xl flex flex-col items-center gap-5 border-b-4 border-b-yellow-500">
-          <div className="w-14 h-14 bg-yellow-500/10 border-2 border-yellow-500/30 rounded-2xl flex items-center justify-center">
-            <svg className="w-7 h-7 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-          </div>
-          <div className="text-center">
-            <h2 className="text-xl font-black text-white mb-2">Falha ao Inicializar Login</h2>
-            <p className="text-slate-400 text-xs font-semibold leading-relaxed font-medium">O sistema de login (Clerk) não conseguiu carregar. Isso normalmente acontece quando as variáveis de ambiente não estão configuradas corretamente na Vercel ou quando o site não foi reimplantado após configurá-las.</p>
-          </div>
-          <div className="w-full bg-slate-950/60 rounded-2xl p-4 text-xs font-mono text-slate-300 space-y-2 border border-slate-800">
-            <p className="text-yellow-400 font-bold">Como resolver na Vercel:</p>
-            <p>1. Settings → Environment Variables</p>
-            <p>2. Adicione: <span className="text-white">NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</span></p>
-            <p>3. Adicione: <span className="text-white">CLERK_SECRET_KEY</span></p>
-            <p>4. <span className="text-emerald-400 font-bold">Deployments → Redeploy</span></p>
-          </div>
-          <button onClick={() => window.location.reload()} className="w-full py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-black rounded-2xl text-sm transition-all cursor-pointer">Tentar Novamente</button>
+        <div className="z-10 flex flex-col items-center gap-4">
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+            className="w-14 h-14 border-4 border-slate-800 border-t-emerald-500 rounded-full shadow-2xl"
+          />
+          <p className="text-slate-400 text-xs font-black tracking-widest uppercase animate-pulse">Carregando dados...</p>
         </div>
       </div>
     );

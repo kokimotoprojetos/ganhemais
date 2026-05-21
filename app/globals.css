@@ -103,6 +103,8 @@
   font-weight: 900 !important;
   letter-spacing: 0.1em !important;
   text-transform: uppercase !important;
+  padding-left: 4px !important;
+  margin-top: 12px !important;
 }
 
 /* Divisor OR */

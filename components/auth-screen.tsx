@@ -151,6 +151,7 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
       formFieldLabel: {
         color: '#94a3b8', fontSize: '10px', fontWeight: '900',
         letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px',
+        paddingLeft: '4px', marginTop: '12px',
       },
       identityPreviewText: { color: '#ffffff' },
       identityPreviewEditButton: { color: '#10b981' },

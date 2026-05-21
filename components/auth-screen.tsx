@@ -114,30 +114,26 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
         textTransform: 'uppercase',
         marginBottom: '6px',
       },
-      // Botões sociais (Google, Apple)
+      // Botões sociais — OCULTOS (Google/Apple causam redirect obrigatório do OAuth)
+      // Para reativar: remova este bloco e configure no painel do Clerk
+      socialButtonsRoot: {
+        display: 'none',
+      },
       socialButtonsBlockButton: {
-        background: 'rgba(30,41,59,0.9)',
-        border: '1px solid rgba(51,65,85,1)',
-        borderRadius: '1rem',
-        color: '#ffffff',
-        fontSize: '13px',
-        fontWeight: '700',
-        padding: '12px',
+        display: 'none',
       },
       socialButtonsBlockButtonText: {
-        color: '#ffffff',
-        fontWeight: '700',
+        display: 'none',
       },
-      // Divisor "ou"
+      // Divisor "ou" — ocultar junto com social buttons
+      dividerRow: {
+        display: 'none',
+      },
       dividerLine: {
-        background: 'rgba(51,65,85,0.6)',
+        display: 'none',
       },
       dividerText: {
-        color: '#64748b',
-        fontSize: '11px',
-        fontWeight: '700',
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
+        display: 'none',
       },
       // Rodapé do Clerk — OCULTO (temos nosso próprio toggle ENTRAR/CADASTRAR)
       footerActionLink: {

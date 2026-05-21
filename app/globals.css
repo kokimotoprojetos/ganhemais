@@ -4,6 +4,17 @@
    CLERK UI OVERRIDES — hide footer/branding, blend into our card
    ============================================================ */
 
+/* Esconder botões sociais Google/Apple (OAuth redireciona obrigatoriamente para accounts.repliobr.com) */
+.cl-socialButtonsRoot,
+.cl-socialButtonsBlockButton,
+.cl-socialButtonsIconButton,
+.cl-dividerRow,
+.cl-dividerLine,
+.cl-dividerText,
+[data-localization-key*="social"] {
+  display: none !important;
+}
+
 /* Esconder rodapé do Clerk: "Don't have an account? Sign up" */
 .cl-footer,
 .cl-footerAction,

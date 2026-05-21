@@ -33,18 +33,19 @@ import { YOUTUBE_VIDEOS, PIB_TASKS } from '@/lib/tasks-data';
 type Tab = 'painel' | 'carteira' | 'planos' | 'convites';
 
 const Page = () => {
-  // Clear referral after login success
-  useEffect(() => {
-    if (isAuthenticated && pendingRef) {
-      handleAuthSuccess();
-    }
-  }, [isAuthenticated, pendingRef]);
+  // Referral handling moved down
 
   const { stats, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, upgradePlan, deposit, isAuthenticated, logout } = useEarnings();
   const [activeTab, setActiveTab] = useState<Tab>('painel');
   const [showNotification, setShowNotification] = useState<string | null>(null);
   const [pendingRef, setPendingRef] = useState<string | null>(null);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+  // Clear referral after login success
+  useEffect(() => {
+    if (isAuthenticated && pendingRef) {
+      handleAuthSuccess();
+    }
+  }, [isAuthenticated, pendingRef]);
 
   // Show error UI if Clerk fails to load within timeout
   useEffect(() => {
@@ -327,7 +328,7 @@ const Page = () => {
           )}
         </AnimatePresence>
       </main>
-      <DepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} amount={depositPredefinedAmount} plan={depositPredefinedPlan} onSuccess={handleDepositSuccess} />
+      <DepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} predefinedAmount={depositPredefinedAmount} predefinedPlan={depositPredefinedPlan} onSuccess={handleDepositSuccess} />
     </>
   );
 };

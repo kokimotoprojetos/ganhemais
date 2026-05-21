@@ -19,6 +19,7 @@ import {
   Copy,
   Star,
   Zap,
+  Clover,
   Lock,
   LogOut,
   Users
@@ -218,7 +219,7 @@ const Page = () => {
       <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col h-screen fixed left-0 top-0">
         <div className="p-8 flex items-center gap-2">
           <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
-            <Zap className="w-5 h-5 fill-current" />
+            <Clover className="w-5 h-5 fill-current" />
           </div>
           <span className="text-xl font-black tracking-tighter italic">GanheMais</span>
         </div>
@@ -271,7 +272,7 @@ const Page = () => {
           <div className="flex items-center justify-between w-full sm:w-auto">
             <div className="flex items-center gap-2 md:hidden">
               <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
-                <Zap className="w-5 h-5 fill-current" />
+                <Clover className="w-5 h-5 fill-current" />
               </div>
               <span className="text-xl font-black tracking-tighter italic">GanheMais</span>
             </div>

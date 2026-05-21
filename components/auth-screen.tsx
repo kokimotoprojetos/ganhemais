@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useSignIn, useSignUp, SignIn, SignUp, useClerk } from '@clerk/nextjs';
 import { motion } from 'motion/react';
 import { 
-  Zap, 
+  Clover, 
   Gift, 
   Wallet,
   Play,
@@ -252,7 +252,7 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
           <div className="lg:col-span-7 flex flex-col text-left space-y-6 lg:pr-8">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold shadow-md shadow-emerald-500/10">
-                <Zap className="w-4 h-4 fill-current" />
+                <Clover className="w-4 h-4 fill-current" />
               </div>
               <span className="text-lg font-black tracking-tighter italic text-white">GanheMais</span>
             </div>
@@ -327,7 +327,7 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
         >
           <div className="flex items-center justify-center gap-2 mb-6">
             <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-emerald-500/20">
-              <Zap className="w-6 h-6 fill-current" />
+              <Clover className="w-6 h-6 fill-current" />
             </div>
             <span className="text-2xl font-black tracking-tighter italic text-white">GanheMais</span>
           </div>

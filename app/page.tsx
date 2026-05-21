@@ -33,7 +33,13 @@ import { YOUTUBE_VIDEOS, PIB_TASKS } from '@/lib/tasks-data';
 
 type Tab = 'painel' | 'carteira' | 'planos' | 'convites';
 
-export default function HomePage() {
+  // Clear referral after login success
+  useEffect(() => {
+    if (isAuthenticated && pendingRef) {
+      handleAuthSuccess();
+    }
+  }, [isAuthenticated, pendingRef]);
+
   const { stats, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, upgradePlan, deposit, isAuthenticated, logout } = useEarnings();
   const [activeTab, setActiveTab] = useState<Tab>('painel');
   const [showNotification, setShowNotification] = useState<string | null>(null);

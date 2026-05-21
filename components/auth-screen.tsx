@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useSignIn, SignIn, SignUp } from '@clerk/nextjs';
+import { useSignIn, useSignUp, SignIn, SignUp } from '@clerk/nextjs';
 import { motion } from 'motion/react';
 import { 
   Zap, 
@@ -42,19 +42,48 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
   const [socialError, setSocialError] = useState<string | null>(null);
 
   const { signIn } = useSignIn();
+  const { signUp } = useSignUp();
 
   // Handle direct OAuth social login — bypasses Account Portal, goes directly to Google/Apple
-  const handleSocialLogin = (provider: 'oauth_google' | 'oauth_apple') => {
-    if (!signIn) return;
-    setSocialLoading(provider === 'oauth_google' ? 'google' : 'apple');
-    // Trigger Clerk redirect; no result is returned
-    (signIn as any).authenticateWithRedirect({
-      strategy: provider,
-      redirectUrl: `${window.location.origin}/sso-callback`,
-      redirectUrlComplete: `${window.location.origin}/`,
-    });
-    // Reset loading after short delay to avoid stuck state if redirect is blocked
-    setTimeout(() => setSocialLoading(null), 500);
+  const handleSocialLogin = async (provider: 'oauth_google' | 'oauth_apple') => {
+    setSocialError(null);
+    const isClerkLoaded = isSignUp ? !!signUp : !!signIn;
+    if (!isClerkLoaded) return;
+
+    try {
+      setSocialLoading(provider === 'oauth_google' ? 'google' : 'apple');
+      
+      // Fallback safety timeout in case redirect fails silently or takes too long
+      const fallbackTimer = setTimeout(() => {
+        setSocialLoading(null);
+      }, 8000);
+
+      if (isSignUp) {
+        if (!signUp) {
+          clearTimeout(fallbackTimer);
+          return;
+        }
+        await (signUp as any).authenticateWithRedirect({
+          strategy: provider,
+          redirectUrl: `${window.location.origin}/sso-callback`,
+          redirectUrlComplete: `${window.location.origin}/`,
+        });
+      } else {
+        if (!signIn) {
+          clearTimeout(fallbackTimer);
+          return;
+        }
+        await (signIn as any).authenticateWithRedirect({
+          strategy: provider,
+          redirectUrl: `${window.location.origin}/sso-callback`,
+          redirectUrlComplete: `${window.location.origin}/`,
+        });
+      }
+    } catch (err: any) {
+      console.error('Erro no redirect de login social:', err);
+      setSocialError(err?.message || 'Erro ao iniciar login social.');
+      setSocialLoading(null);
+    }
   };
 
   // Fetch the inviter username when referral code is present
@@ -146,48 +175,51 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
   };
 
   // Reusable social buttons block
-  const SocialButtons = () => (
-    <div className="space-y-3 mb-4">
-      {/* Google Button */}
-      <button
-        onClick={() => handleSocialLogin('oauth_google')}
-        disabled={!!socialLoading}
-        className="w-full flex items-center justify-center gap-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 text-white font-bold py-3.5 rounded-2xl transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed text-sm"
-      >
-        {socialLoading === 'google' ? (
-          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-        ) : <GoogleIcon />}
-        Continuar com Google
-      </button>
+  const SocialButtons = () => {
+    const isClerkLoaded = isSignUp ? !!signUp : !!signIn;
+    return (
+      <div className="space-y-3 mb-4">
+        {/* Google Button */}
+        <button
+          onClick={() => handleSocialLogin('oauth_google')}
+          disabled={!isClerkLoaded || !!socialLoading}
+          className="w-full flex items-center justify-center gap-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 text-white font-bold py-3.5 rounded-2xl transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed text-sm"
+        >
+          {socialLoading === 'google' ? (
+            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : <GoogleIcon />}
+          Continuar com Google
+        </button>
 
-      {/* Apple Button */}
-      <button
-        onClick={() => handleSocialLogin('oauth_apple')}
-        disabled={!!socialLoading}
-        className="w-full flex items-center justify-center gap-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 text-white font-bold py-3.5 rounded-2xl transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed text-sm"
-      >
-        {socialLoading === 'apple' ? (
-          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-        ) : <AppleIcon />}
-        Continuar com Apple
-      </button>
+        {/* Apple Button */}
+        <button
+          onClick={() => handleSocialLogin('oauth_apple')}
+          disabled={!isClerkLoaded || !!socialLoading}
+          className="w-full flex items-center justify-center gap-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 text-white font-bold py-3.5 rounded-2xl transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed text-sm"
+        >
+          {socialLoading === 'apple' ? (
+            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : <AppleIcon />}
+          Continuar com Apple
+        </button>
 
-      {/* Error message */}
-      {socialError && (
-        <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          {socialError}
+        {/* Error message */}
+        {socialError && (
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            {socialError}
+          </div>
+        )}
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 my-2">
+          <div className="flex-1 h-px bg-slate-800" />
+          <span className="text-slate-600 text-[10px] font-black uppercase tracking-wider">ou</span>
+          <div className="flex-1 h-px bg-slate-800" />
         </div>
-      )}
-
-      {/* Divider */}
-      <div className="flex items-center gap-3 my-2">
-        <div className="flex-1 h-px bg-slate-800" />
-        <span className="text-slate-600 text-[10px] font-black uppercase tracking-wider">ou</span>
-        <div className="flex-1 h-px bg-slate-800" />
       </div>
-    </div>
-  );
+    );
+  };
 
   // Reusable toggle ENTRAR / CADASTRAR
   const TabToggle = () => (

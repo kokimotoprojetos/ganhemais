@@ -46,12 +46,12 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
     }
   }, [pendingRef]);
 
-  // Clerk appearance customization — dark premium theme
+  // Clerk appearance — dark premium, card/header completamente ocultos para integrar ao nosso card
   const clerkAppearance = {
     variables: {
       colorPrimary: '#10b981',
-      colorBackground: '#0f172a',
-      colorInputBackground: '#020617',
+      colorBackground: 'transparent',
+      colorInputBackground: 'rgba(2,6,23,0.7)',
       colorInputText: '#ffffff',
       colorText: '#ffffff',
       colorTextSecondary: '#94a3b8',
@@ -59,41 +59,52 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
       borderRadius: '1rem',
       fontFamily: 'Inter, sans-serif',
       colorDanger: '#ef4444',
+      fontSize: '14px',
     },
     elements: {
+      // Remove completamente o card do Clerk (usamos o nosso)
       card: {
-        background: 'rgba(15,23,42,0.0)',
+        background: 'transparent',
         boxShadow: 'none',
         border: 'none',
         padding: '0',
+        margin: '0',
+        width: '100%',
       },
       rootBox: {
         width: '100%',
       },
+      // Ocultar o cabeçalho do Clerk ("Sign in to REPLIO") — temos o nosso
+      header: {
+        display: 'none',
+      },
+      headerTitle: {
+        display: 'none',
+      },
+      headerSubtitle: {
+        display: 'none',
+      },
+      // Botão principal (Continuar / Criar conta)
       formButtonPrimary: {
         background: 'linear-gradient(135deg, #10b981, #059669)',
-        fontSize: '14px',
+        fontSize: '13px',
         fontWeight: '900',
-        letterSpacing: '0.05em',
+        letterSpacing: '0.08em',
         borderRadius: '1rem',
         padding: '14px',
         textTransform: 'uppercase',
-        boxShadow: '0 10px 30px rgba(16,185,129,0.2)',
-        '&:hover': {
-          background: 'linear-gradient(135deg, #059669, #047857)',
-        },
+        boxShadow: '0 8px 24px rgba(16,185,129,0.25)',
+        border: 'none',
+        marginTop: '4px',
       },
+      // Campos de input
       formFieldInput: {
-        background: 'rgba(2,6,23,0.6)',
+        background: 'rgba(2,6,23,0.7)',
         border: '1px solid rgba(51,65,85,1)',
         borderRadius: '1rem',
         color: '#ffffff',
         fontSize: '14px',
         padding: '14px 16px',
-        '&:focus': {
-          border: '1px solid #10b981',
-          boxShadow: '0 0 0 2px rgba(16,185,129,0.15)',
-        },
       },
       formFieldLabel: {
         color: '#94a3b8',
@@ -101,56 +112,79 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
         fontWeight: '900',
         letterSpacing: '0.1em',
         textTransform: 'uppercase',
+        marginBottom: '6px',
       },
-      headerTitle: {
-        color: '#ffffff',
-        fontSize: '22px',
-        fontWeight: '900',
-      },
-      headerSubtitle: {
-        color: '#94a3b8',
-        fontSize: '13px',
-      },
+      // Botões sociais (Google, Apple)
       socialButtonsBlockButton: {
-        background: 'rgba(30,41,59,0.8)',
+        background: 'rgba(30,41,59,0.9)',
         border: '1px solid rgba(51,65,85,1)',
         borderRadius: '1rem',
         color: '#ffffff',
-        '&:hover': {
-          background: 'rgba(51,65,85,0.8)',
-        },
+        fontSize: '13px',
+        fontWeight: '700',
+        padding: '12px',
       },
+      socialButtonsBlockButtonText: {
+        color: '#ffffff',
+        fontWeight: '700',
+      },
+      // Divisor "ou"
       dividerLine: {
         background: 'rgba(51,65,85,0.6)',
       },
       dividerText: {
         color: '#64748b',
-        fontSize: '12px',
+        fontSize: '11px',
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
       },
+      // Links do rodapé
       footerActionLink: {
         color: '#10b981',
         fontWeight: '700',
       },
+      footer: {
+        background: 'transparent',
+        borderTop: 'none',
+      },
+      footerAction: {
+        background: 'transparent',
+      },
+      // Preview de identidade (ao confirmar email)
       identityPreviewText: {
         color: '#ffffff',
       },
       identityPreviewEditButton: {
         color: '#10b981',
       },
+      // Código OTP
       otpCodeFieldInput: {
-        background: 'rgba(2,6,23,0.6)',
+        background: 'rgba(2,6,23,0.7)',
         border: '1px solid rgba(51,65,85,1)',
         borderRadius: '0.75rem',
         color: '#ffffff',
-        '&:focus': {
-          border: '1px solid #10b981',
-        },
+        fontSize: '20px',
+        fontWeight: '900',
+      },
+      // Mensagens de erro
+      formFieldErrorText: {
+        color: '#fca5a5',
+        fontSize: '12px',
       },
       alertText: {
         color: '#fca5a5',
       },
       formResendCodeLink: {
         color: '#10b981',
+        fontWeight: '700',
+      },
+      // Interno
+      main: {
+        width: '100%',
+      },
+      form: {
+        width: '100%',
       },
     },
   };

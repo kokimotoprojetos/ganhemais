@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useSignIn, useSignUp } from '@clerk/nextjs';
 import { motion } from 'motion/react';
 import { 
   Zap, 
@@ -30,6 +31,12 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
   
   const [inviterName, setInviterName] = useState<string | null>(null);
   const [fetchingInviter, setFetchingInviter] = useState(false);
+
+  const { signUp } = useSignUp();
+  const { signIn } = useSignIn();
+
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
 
   // Fetch the inviter username/email on mount when referral code is present
   useEffect(() => {
@@ -66,64 +73,169 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
 
     try {
       if (isSignUp) {
-        // Sign up with Supabase and pass referral code in user metadata
-        const { error, data } = await supabase.auth.signUp({
-          email,
+        if (!signUp) return;
+        
+        // Start sign up with Clerk
+        const result = await signUp.create({
+          emailAddress: email,
           password,
-          options: {
-            data: {
-              ref: pendingRef || undefined,
-            },
-          },
         });
 
-        if (error) throw error;
+        if (result.error) {
+          throw result.error;
+        }
 
-        // Auto sign in or show a message
-        if (data.session) {
+        if (signUp.status === 'complete') {
+          const finalizeResult = await signUp.finalize();
+          if (finalizeResult.error) {
+            throw finalizeResult.error;
+          }
           onAuthSuccess();
         } else {
-          if (data.user) {
-            // Log in right after signup if session is active
-            const { error: signInError } = await supabase.auth.signInWithPassword({
-              email,
-              password,
-            });
-            if (signInError) {
-              setErrorMsg('Cadastro efetuado! Faça login agora.');
-              setIsSignUp(false);
-            } else {
-              onAuthSuccess();
-            }
-          } else {
-            setErrorMsg('Cadastro realizado! Por favor, verifique seu e-mail para confirmar a conta.');
+          // Send verification email
+          const verifyResult = await signUp.verifications.sendEmailCode();
+          if (verifyResult.error) {
+            throw verifyResult.error;
           }
+          setPendingVerification(true);
         }
       } else {
-        // Sign in
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
+        if (!signIn) return;
+        
+        // Sign in with Clerk
+        const result = await signIn.create({
+          identifier: email,
           password,
         });
 
-        if (error) throw error;
-        onAuthSuccess();
+        if (result.error) {
+          throw result.error;
+        }
+
+        if (signIn.status === 'complete') {
+          const finalizeResult = await signIn.finalize();
+          if (finalizeResult.error) {
+            throw finalizeResult.error;
+          }
+          onAuthSuccess();
+        } else {
+          setErrorMsg('Requisitos adicionais de login pendentes.');
+        }
       }
     } catch (err: any) {
       console.error('Auth error:', err);
-      // Map common errors to friendly Portuguese messages
-      let message = err.message;
-      if (message === 'Invalid login credentials' || message.includes('Email not confirmed')) {
-        message = 'E-mail ou senha incorretos.';
-      } else if (message === 'User already registered') {
+      // Map common Clerk errors or standard errors to friendly Portuguese messages
+      let message = err.errors?.[0]?.longMessage || err.message || 'Erro de autenticação.';
+      if (message.includes('Password should be') || message.includes('password is too weak')) {
+        message = 'A senha deve ter pelo menos 8 caracteres.';
+      } else if (message.includes('already exists') || message.includes('already registered')) {
         message = 'Este e-mail já está cadastrado.';
-      } else if (message.includes('Password should be')) {
-        message = 'A senha deve ter pelo menos 6 caracteres.';
+      } else if (message.includes('matches no user') || message.includes('incorrect password') || message.includes('Invalid credentials')) {
+        message = 'E-mail ou senha incorretos.';
       }
       setErrorMsg(message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleVerificationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signUp) return;
+    setLoading(true);
+    setErrorMsg(null);
+
+    try {
+      const result = await signUp.verifications.verifyEmailCode({
+        code: verificationCode,
+      });
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      if (signUp.status === 'complete') {
+        const finalizeResult = await signUp.finalize();
+        if (finalizeResult.error) {
+          throw finalizeResult.error;
+        }
+        onAuthSuccess();
+      } else {
+        setErrorMsg('Não foi possível verificar o e-mail. Verifique o código e tente novamente.');
+      }
+    } catch (err: any) {
+      console.error('Verification error:', err);
+      let message = err.errors?.[0]?.longMessage || err.message || 'Código inválido.';
+      if (message.includes('incorrect') || message.includes('invalid')) {
+        message = 'Código de verificação incorreto ou expirado.';
+      }
+      setErrorMsg(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderVerificationForm = () => {
+    return (
+      <form onSubmit={handleVerificationSubmit} className="w-full space-y-5">
+        <div className="space-y-2">
+          <label className="text-[10px] text-slate-400 font-black uppercase tracking-widest block ml-1">Código de Confirmação</label>
+          <div className="relative">
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-500" />
+            <input 
+              type="text" 
+              required
+              maxLength={6}
+              placeholder="Digite o código recebido"
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value)}
+              className="w-full bg-slate-950/50 border border-slate-800 text-white rounded-2xl pl-12 pr-4 py-4 text-sm font-semibold placeholder-slate-600 focus:border-emerald-500 focus:outline-none transition-colors tracking-widest text-center font-mono"
+            />
+          </div>
+        </div>
+
+        {errorMsg && (
+          <motion.div 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-start gap-3 p-4 rounded-2xl text-xs font-semibold leading-relaxed border bg-red-500/10 border-red-500/20 text-red-400"
+          >
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{errorMsg}</span>
+          </motion.div>
+        )}
+
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          type="submit"
+          disabled={loading}
+          className="w-full py-4.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-sm tracking-wide shadow-xl shadow-emerald-900/10 hover:shadow-emerald-500/10 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? (
+            <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          ) : (
+            <>
+              CONFIRMAR E COMEÇAR
+              <ArrowRight className="w-4 h-4" />
+            </>
+          )}
+        </motion.button>
+
+        <div className="mt-6 text-center">
+          <button
+            type="button"
+            onClick={() => {
+              setPendingVerification(false);
+              setErrorMsg(null);
+            }}
+            className="text-xs text-slate-400 font-bold hover:underline bg-transparent border-none outline-none cursor-pointer"
+          >
+            Voltar para o cadastro
+          </button>
+        </div>
+      </form>
+    );
   };
 
   const renderForm = () => {
@@ -166,11 +278,7 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
           <motion.div 
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`flex items-start gap-3 p-4 rounded-2xl text-xs font-semibold leading-relaxed border ${
-              errorMsg.includes('Cadastro realizado') || errorMsg.includes('Cadastro efetuado')
-                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                : 'bg-red-500/10 border-red-500/20 text-red-400'
-            }`}
+            className="flex items-start gap-3 p-4 rounded-2xl text-xs font-semibold leading-relaxed border bg-red-500/10 border-red-500/20 text-red-400"
           >
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{errorMsg}</span>
@@ -205,7 +313,7 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
                 setIsSignUp(!isSignUp);
                 setErrorMsg(null);
               }}
-              className="text-emerald-400 font-black ml-1 hover:underline cursor-pointer bg-transparent border-none outline-none"
+              className="text-emerald-400 font-black ml-1 hover:underline cursor-pointer bg-transparent border-none outline-none font-sans"
             >
               {isSignUp ? 'Entrar' : 'Cadastre-se'}
             </button>
@@ -321,17 +429,19 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
                   <span className="text-xl font-black tracking-tighter italic text-white">GanheMais</span>
                 </div>
                 <h2 className="text-2xl font-black tracking-tight text-white mb-2 text-center">
-                  {isSignUp ? 'Crie sua Conta Grátis' : 'Entrar no GanheMais'}
+                  {pendingVerification ? 'Confirme seu E-mail' : (isSignUp ? 'Crie sua Conta Grátis' : 'Entrar no GanheMais')}
                 </h2>
                 <p className="text-slate-400 text-xs font-semibold text-center">
-                  {isSignUp 
-                    ? 'Comece a lucrar assistindo a vídeos e respondendo questionários' 
-                    : 'Acesse o seu painel de ganhos diários'}
+                  {pendingVerification 
+                    ? 'Digite o código enviado para o seu endereço de e-mail' 
+                    : (isSignUp 
+                      ? 'Comece a lucrar assistindo a vídeos e respondendo questionários' 
+                      : 'Acesse o seu painel de ganhos diários')}
                 </p>
               </div>
 
-              {/* Render signup or login form */}
-              {renderForm()}
+              {/* Render signup, login, or verification form */}
+              {pendingVerification ? renderVerificationForm() : renderForm()}
             </motion.div>
           </div>
         </div>
@@ -352,15 +462,17 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
           </div>
 
           <h2 className="text-2xl font-black tracking-tight text-white mb-2 text-center">
-            {isSignUp ? 'Crie sua Conta Grátis' : 'Entrar no GanheMais'}
+            {pendingVerification ? 'Confirme seu E-mail' : (isSignUp ? 'Crie sua Conta Grátis' : 'Entrar no GanheMais')}
           </h2>
           <p className="text-slate-400 text-xs font-semibold text-center mb-8">
-            {isSignUp 
-              ? 'Comece a lucrar assistindo a vídeos e respondendo questionários' 
-              : 'Acesse o seu painel de ganhos diários'}
+            {pendingVerification 
+              ? 'Digite o código enviado para o seu endereço de e-mail' 
+              : (isSignUp 
+                ? 'Comece a lucrar assistindo a vídeos e respondendo questionários' 
+                : 'Acesse o seu painel de ganhos diários')}
           </p>
 
-          {renderForm()}
+          {pendingVerification ? renderVerificationForm() : renderForm()}
         </motion.div>
       )}
     </div>

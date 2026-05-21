@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { useUser, useClerk } from '@clerk/nextjs';
 import { supabase } from '@/lib/supabase';
 import { YOUTUBE_VIDEOS, PIB_TASKS } from '@/lib/tasks-data';
 
@@ -33,107 +34,168 @@ export function useEarnings() {
     email: '',
   });
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
+  const { user, isLoaded, isSignedIn } = useUser();
+  const { signOut } = useClerk();
+  const [isSupabaseLoading, setIsSupabaseLoading] = useState(true);
+
+  const userId = user?.id || null;
+  const isLoading = !isLoaded || isSupabaseLoading;
 
   // Sync profile data from Supabase
-  const fetchProfile = useCallback(async (uid: string) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', uid)
-        .single();
-
-      if (error) throw error;
-
-      if (profile) {
-        // Count invites by searching profiles table
-        const { count, error: inviteError } = await supabase
-          .from('profiles')
-          .select('id', { count: 'exact', head: true })
-          .eq('invited_by', uid);
-
-        const inviteCount = inviteError ? 0 : (count || 0);
-
-        setStats({
-          balance: Number(profile.balance || 0),
-          totalEarned: Number(profile.total_earned || 0),
-          lastCheckIn: profile.last_check_in || null,
-          tasksCompleted: profile.completed_tasks ? profile.completed_tasks.length : 0,
-          invites: inviteCount,
-          plan: (profile.plan as 'Basic' | 'Silver' | 'Gold') || 'Basic',
-          completedTasks: profile.completed_tasks || [],
-          completedTodayCount: profile.completed_today_count ?? 0,
-          lastTaskDate: profile.last_task_date || null,
-          referralCode: profile.referral_code || '',
-          email: profile.email || '',
-        });
-      }
-    } catch (err) {
-      console.error('Error fetching Supabase profile:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Listen to Auth State Changes
   useEffect(() => {
+    if (!isLoaded) return;
+
     let active = true;
 
-    const setupAuth = async () => {
-      // 1. Get current session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (active) {
-        if (session?.user) {
-          setUserId(session.user.id);
-          fetchProfile(session.user.id);
-        } else {
-          setUserId(null);
-          setIsLoading(false);
-        }
+    const syncProfile = async () => {
+      if (!isSignedIn || !user) {
+        setStats({
+          balance: 0,
+          totalEarned: 0,
+          lastCheckIn: null,
+          tasksCompleted: 0,
+          invites: 0,
+          plan: 'Basic',
+          completedTasks: [],
+          completedTodayCount: 0,
+          lastTaskDate: null,
+          referralCode: '',
+          email: '',
+        });
+        setIsSupabaseLoading(false);
+        return;
       }
 
-      // 2. Setup listener
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (_event, session) => {
-          if (active) {
-            if (session?.user) {
-              setUserId(session.user.id);
-              fetchProfile(session.user.id);
-            } else {
-              setUserId(null);
-              setStats({
-                balance: 0,
-                totalEarned: 0,
-                lastCheckIn: null,
-                tasksCompleted: 0,
-                invites: 0,
-                plan: 'Basic',
-                completedTasks: [],
-                completedTodayCount: 0,
-                lastTaskDate: null,
-                referralCode: '',
-                email: '',
-              });
-              setIsLoading(false);
+      const uid = user.id;
+      const userEmail = user.primaryEmailAddress?.emailAddress || '';
+
+      try {
+        // Try to fetch profile
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', uid)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (profile) {
+          if (!active) return;
+          // Count invites
+          const { count, error: inviteError } = await supabase
+            .from('profiles')
+            .select('id', { count: 'exact', head: true })
+            .eq('invited_by', uid);
+
+          const inviteCount = inviteError ? 0 : (count || 0);
+
+          setStats({
+            balance: Number(profile.balance || 0),
+            totalEarned: Number(profile.total_earned || 0),
+            lastCheckIn: profile.last_check_in || null,
+            tasksCompleted: profile.completed_tasks ? profile.completed_tasks.length : 0,
+            invites: inviteCount,
+            plan: (profile.plan as 'Basic' | 'Silver' | 'Gold') || 'Basic',
+            completedTasks: profile.completed_tasks || [],
+            completedTodayCount: profile.completed_today_count ?? 0,
+            lastTaskDate: profile.last_task_date || null,
+            referralCode: profile.referral_code || '',
+            email: profile.email || '',
+          });
+        } else {
+          // Profile doesn't exist, create it (New SignUp)
+          if (!active) return;
+
+          // Generate unique referral code
+          const baseCode = (userEmail.split('@')[0] || 'user').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const uniqueSuffix = Math.random().toString(36).substring(2, 6);
+          const referralCode = `${baseCode}_${uniqueSuffix}`;
+
+          // Check if there is a pending referral in localStorage
+          let invitedBy: string | null = null;
+          if (typeof window !== 'undefined') {
+            const pendingRef = localStorage.getItem('ganhemais_pending_ref');
+            if (pendingRef) {
+              const { data: inviterProfile } = await supabase
+                .from('profiles')
+                .select('id, balance, total_earned')
+                .eq('referral_code', pendingRef)
+                .maybeSingle();
+
+              if (inviterProfile) {
+                invitedBy = inviterProfile.id;
+                // Credit R$ 2,00 to the inviter
+                const newInviterBalance = Number(inviterProfile.balance || 0) + 2.00;
+                const newInviterTotal = Number(inviterProfile.total_earned || 0) + 2.00;
+                await supabase
+                  .from('profiles')
+                  .update({
+                    balance: newInviterBalance,
+                    total_earned: newInviterTotal
+                  })
+                  .eq('id', inviterProfile.id);
+              }
             }
           }
-        }
-      );
 
-      return () => {
-        subscription.unsubscribe();
-      };
+          // Insert new profile
+          const newProfile = {
+            id: uid,
+            email: userEmail,
+            balance: 0.00,
+            total_earned: 0.00,
+            plan: 'Basic',
+            invited_by: invitedBy,
+            referral_code: referralCode,
+            completed_tasks: [],
+            completed_today_count: 0,
+            last_task_date: null,
+            last_check_in: null
+          };
+
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert(newProfile);
+
+          if (insertError) throw insertError;
+
+          // Clean up pending referral code
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('ganhemais_pending_ref');
+          }
+
+          if (active) {
+            setStats({
+              balance: 0.00,
+              totalEarned: 0.00,
+              lastCheckIn: null,
+              tasksCompleted: 0,
+              invites: 0,
+              plan: 'Basic',
+              completedTasks: [],
+              completedTodayCount: 0,
+              lastTaskDate: null,
+              referralCode,
+              email: userEmail,
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error syncing/fetching Supabase profile:', err);
+      } finally {
+        if (active) {
+          setIsSupabaseLoading(false);
+        }
+      }
     };
 
-    const cleanAuth = setupAuth();
+    syncProfile();
 
     return () => {
       active = false;
-      cleanAuth.then(unsub => unsub && typeof unsub === 'function' && unsub());
     };
-  }, [fetchProfile]);
+  }, [isLoaded, isSignedIn, user]);
+
 
   // General profile update helper
   const updateProfileFields = async (fields: Record<string, any>) => {
@@ -324,7 +386,7 @@ export function useEarnings() {
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    await signOut();
   };
 
   return {

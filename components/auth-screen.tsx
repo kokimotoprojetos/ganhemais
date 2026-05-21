@@ -252,7 +252,7 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
           <div className="lg:col-span-7 flex flex-col text-left space-y-6 lg:pr-8">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 flex items-center justify-center shrink-0">
-                <img src="/ICONE2.png" alt="GanheMais Logo" className="w-full h-full object-contain" />
+                <img src="/ICONE4.png" alt="GanheMais Logo" className="w-full h-full object-contain" />
               </div>
               <span className="text-lg font-black tracking-tighter italic text-white">GanheMais</span>
             </div>
@@ -327,7 +327,7 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
         >
           <div className="flex items-center justify-center gap-2 mb-6">
             <div className="w-10 h-10 flex items-center justify-center shrink-0">
-              <img src="/ICONE2.png" alt="GanheMais Logo" className="w-full h-full object-contain" />
+              <img src="/ICONE4.png" alt="GanheMais Logo" className="w-full h-full object-contain" />
             </div>
             <span className="text-2xl font-black tracking-tighter italic text-white">GanheMais</span>
           </div>

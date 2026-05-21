@@ -220,7 +220,7 @@ const Page = () => {
       <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col h-screen fixed left-0 top-0">
         <div className="p-8 flex items-center gap-2">
           <div className="w-8 h-8 flex items-center justify-center shrink-0">
-            <img src="/ICONE.png" alt="GanheMais Logo" className="w-full h-full object-contain" />
+            <img src="/ICONE4.png" alt="GanheMais Logo" className="w-full h-full object-contain" />
           </div>
           <span className="text-xl font-black tracking-tighter italic">GanheMais</span>
         </div>
@@ -273,7 +273,7 @@ const Page = () => {
           <div className="flex items-center justify-between w-full sm:w-auto">
             <div className="flex items-center gap-2 md:hidden">
               <div className="w-8 h-8 flex items-center justify-center shrink-0">
-                <img src="/ICONE.png" alt="GanheMais Logo" className="w-full h-full object-contain" />
+                <img src="/ICONE4.png" alt="GanheMais Logo" className="w-full h-full object-contain" />
               </div>
               <span className="text-xl font-black tracking-tighter italic">GanheMais</span>
             </div>

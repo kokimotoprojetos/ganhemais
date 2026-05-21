@@ -118,8 +118,9 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
       fontSize: '14px',
     },
     elements: {
-      card: { background: 'transparent', boxShadow: 'none', border: 'none', padding: '0', margin: '0', width: '100%' },
-      rootBox: { width: '100%' },
+      cardBox: { width: '100%', maxWidth: '100%', minWidth: 'auto' },
+      card: { background: 'transparent', boxShadow: 'none', border: 'none', padding: '0', margin: '0', width: '100%', maxWidth: '100%', minWidth: 'auto' },
+      rootBox: { width: '100%', maxWidth: '100%', minWidth: 'auto' },
       header: { display: 'none' },
       headerTitle: { display: 'none' },
       headerSubtitle: { display: 'none' },
@@ -143,16 +144,19 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
         fontSize: '13px', fontWeight: '900', letterSpacing: '0.08em',
         borderRadius: '1rem', padding: '14px', textTransform: 'uppercase',
         boxShadow: '0 8px 24px rgba(16,185,129,0.25)', border: 'none', marginTop: '4px',
+        width: '100%', maxWidth: '100%', boxSizing: 'border-box',
       },
       formFieldInput: {
         background: 'rgba(2,6,23,0.7)', border: '1px solid rgba(51,65,85,1)',
         borderRadius: '1rem', color: '#ffffff', fontSize: '14px', padding: '14px 16px',
+        width: '100%', maxWidth: '100%', boxSizing: 'border-box',
       },
       formFieldLabel: {
         color: '#94a3b8', fontSize: '10px', fontWeight: '900',
         letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px',
         paddingLeft: '4px', marginTop: '12px',
       },
+      formField: { width: '100%', maxWidth: '100%' },
       identityPreviewText: { color: '#ffffff' },
       identityPreviewEditButton: { color: '#10b981' },
       otpCodeFieldInput: {
@@ -162,8 +166,8 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
       formFieldErrorText: { color: '#fca5a5', fontSize: '12px' },
       alertText: { color: '#fca5a5' },
       formResendCodeLink: { color: '#10b981', fontWeight: '700' },
-      main: { width: '100%' },
-      form: { width: '100%' },
+      main: { width: '100%', maxWidth: '100%', minWidth: 'auto' },
+      form: { width: '100%', maxWidth: '100%', minWidth: 'auto' },
     },
   };
 

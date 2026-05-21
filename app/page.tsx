@@ -187,7 +187,7 @@ const Page = () => {
 
   const copyRefLink = () => {
     const refCode = stats.referralCode || 'codigo';
-    const link = typeof window !== 'undefined' ? `${window.location.origin}/?ref=${refCode}` : `https://ganhemais.app/?ref=${refCode}`;
+    const link = typeof window !== 'undefined' ? `${window.location.origin}/?ref=${refCode}` : `https://replioganhemais.com/?ref=${refCode}`;
     navigator.clipboard.writeText(link);
     triggerNotification('Link de convite copiado!');
   };
@@ -222,7 +222,7 @@ const Page = () => {
           <div className="w-8 h-8 flex items-center justify-center shrink-0">
             <img src="/ICONE4.png" alt="GanheMais Logo" className="w-full h-full object-contain" />
           </div>
-          <span className="text-xl font-black tracking-tighter italic">GanheMais</span>
+          <span className="text-xl font-black tracking-tighter italic">Replio GanheMais</span>
         </div>
         <nav className="space-y-2 px-4">
           {[
@@ -275,7 +275,7 @@ const Page = () => {
               <div className="w-8 h-8 flex items-center justify-center shrink-0">
                 <img src="/ICONE4.png" alt="GanheMais Logo" className="w-full h-full object-contain" />
               </div>
-              <span className="text-xl font-black tracking-tighter italic">GanheMais</span>
+              <span className="text-xl font-black tracking-tighter italic">Replio GanheMais</span>
             </div>
             <div className="hidden md:block">
               <h1 className="text-3xl font-black text-slate-900 tracking-tight">
@@ -700,7 +700,7 @@ const Page = () => {
                   
                   <div className="bg-white/10 p-1.5 sm:p-2 rounded-2xl sm:rounded-3xl backdrop-blur-md max-w-md mx-auto flex flex-col sm:flex-row items-center gap-2 border border-white/20">
                     <div className="flex-1 px-4 py-2 sm:py-0 font-bold text-xs sm:text-sm overflow-hidden text-ellipsis whitespace-nowrap opacity-80">
-                      {typeof window !== 'undefined' ? `${window.location.host}/?ref=${stats.referralCode || ''}` : `ganhemais.app/?ref=${stats.referralCode || ''}`}
+                      {typeof window !== 'undefined' ? `${window.location.host}/?ref=${stats.referralCode || ''}` : `replioganhemais.com/?ref=${stats.referralCode || ''}`}
                     </div>
                     <button 
                       onClick={copyRefLink}
@@ -807,7 +807,7 @@ const Page = () => {
                     </div>
                     <div className="w-full bg-slate-50 border border-slate-200/60 p-2 rounded-2xl flex items-center gap-2">
                       <div className="flex-1 px-3 text-left font-bold text-xs overflow-hidden text-ellipsis whitespace-nowrap text-slate-500">
-                        {typeof window !== 'undefined' ? `${window.location.host}/?ref=${stats.referralCode || ''}` : `ganhemais.app/?ref=${stats.referralCode || ''}`}
+                        {typeof window !== 'undefined' ? `${window.location.host}/?ref=${stats.referralCode || ''}` : `replioganhemais.com/?ref=${stats.referralCode || ''}`}
                       </div>
                       <button 
                         onClick={copyRefLink}

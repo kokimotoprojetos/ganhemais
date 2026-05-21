@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const safeEmail = email || `${name.toLowerCase().replace(/\s+/g, '')}@ganhemais.app`;
+    const safeEmail = email || `${name.toLowerCase().replace(/\s+/g, '')}@replioganhemais.com`;
 
     const apiKey = process.env.LYTRON_API_KEY || '';
     const secretHash = process.env.LYTRON_SECRET_HASH || '';
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
       const checksum = hashHex.substring(0, 4).toUpperCase();
 
-      const copyPaste = `00020101021226990014br.gov.bcb.pix2577pix.ganhemais.app/charges/${txid}5204000053039865405${amount.toFixed(2)}5802BR5920GanheMais Plataforma6009SAO PAULO62070503***6304${checksum}`;
+      const copyPaste = `00020101021226990014br.gov.bcb.pix2577pix.replioganhemais.com/charges/${txid}5204000053039865405${amount.toFixed(2)}5802BR5926Replio GanheMais Plataforma6009SAO PAULO62070503***6304${checksum}`;
 
       return NextResponse.json({
         txid,
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     // REAL INTEGRATION WITH LYTRON PAY
     const payload = {
       amount: parseFloat(amount),
-      description: plan ? `Assinatura Plano ${plan} - GanheMais` : `Depósito em Carteira - GanheMais`,
+      description: plan ? `Assinatura Plano ${plan} - Replio GanheMais` : `Depósito em Carteira - Replio GanheMais`,
       customer: {
         name,
         email: safeEmail,

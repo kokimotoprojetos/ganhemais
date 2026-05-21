@@ -1,5 +1,5 @@
 {
-  "name": "GanheMais",
+  "name": "Replio GanheMais",
   "description": "Plataforma completa de tarefas com check-in diário e recompensas por anúncios.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

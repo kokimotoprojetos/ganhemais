@@ -6,7 +6,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'GanheMais - Sua Plataforma de Tarefas',
+  title: 'Replio GanheMais - Sua Plataforma de Tarefas',
   description: 'Ganhe dinheiro completando tarefas simples e check-ins diários.',
 };
 

@@ -254,7 +254,7 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
               <div className="w-8 h-8 flex items-center justify-center shrink-0">
                 <img src="/ICONE4.png" alt="GanheMais Logo" className="w-full h-full object-contain" />
               </div>
-              <span className="text-lg font-black tracking-tighter italic text-white">GanheMais</span>
+              <span className="text-lg font-black tracking-tighter italic text-white">Replio GanheMais</span>
             </div>
             <div className="space-y-4">
               <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3.5 py-1.5 rounded-full text-xs font-black tracking-wider uppercase animate-pulse">
@@ -329,7 +329,7 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
             <div className="w-10 h-10 flex items-center justify-center shrink-0">
               <img src="/ICONE4.png" alt="GanheMais Logo" className="w-full h-full object-contain" />
             </div>
-            <span className="text-2xl font-black tracking-tighter italic text-white">GanheMais</span>
+            <span className="text-2xl font-black tracking-tighter italic text-white">Replio GanheMais</span>
           </div>
           {renderTabToggle()}
           {renderSocialButtons()}

@@ -1,1 +1,129 @@
 @import "tailwindcss";
+
+/* ============================================================
+   CLERK UI OVERRIDES — hide footer/branding, blend into our card
+   ============================================================ */
+
+/* Esconder rodapé do Clerk: "Don't have an account? Sign up" */
+.cl-footer,
+.cl-footerAction,
+.cl-footerActionText,
+.cl-footerActionLink,
+.cl-footerPages,
+[data-localization-key="signIn.start.actionLink"],
+[data-localization-key="signUp.start.actionLink"] {
+  display: none !important;
+}
+
+/* Esconder "Powered by Clerk" */
+.cl-badge,
+.cl-branding,
+[href*="clerk.com"],
+[href*="clerk.dev"] {
+  display: none !important;
+}
+
+/* Remover card/shadow/border do Clerk — usamos o nosso card */
+.cl-card {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+/* Remover fundo do rootBox */
+.cl-rootBox {
+  width: 100% !important;
+  background: transparent !important;
+}
+
+/* Remover header do Clerk */
+.cl-header {
+  display: none !important;
+}
+
+/* Garantir inputs dark */
+.cl-formFieldInput {
+  background: rgba(2, 6, 23, 0.7) !important;
+  border: 1px solid rgba(51, 65, 85, 1) !important;
+  border-radius: 1rem !important;
+  color: #ffffff !important;
+}
+
+.cl-formFieldInput:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15) !important;
+  outline: none !important;
+}
+
+/* Botão principal verde */
+.cl-formButtonPrimary {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  border-radius: 1rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+  border: none !important;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25) !important;
+}
+
+.cl-formButtonPrimary:hover {
+  background: linear-gradient(135deg, #059669, #047857) !important;
+}
+
+/* Botões sociais */
+.cl-socialButtonsBlockButton {
+  background: rgba(30, 41, 59, 0.9) !important;
+  border: 1px solid rgba(51, 65, 85, 1) !important;
+  border-radius: 1rem !important;
+  color: #ffffff !important;
+}
+
+.cl-socialButtonsBlockButtonText {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+/* Labels */
+.cl-formFieldLabel {
+  color: #94a3b8 !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+}
+
+/* Divisor OR */
+.cl-dividerLine {
+  background: rgba(51, 65, 85, 0.6) !important;
+}
+
+.cl-dividerText {
+  color: #64748b !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+}
+
+/* Erros */
+.cl-formFieldErrorText,
+.cl-alertText {
+  color: #fca5a5 !important;
+}
+
+/* OTP code inputs */
+.cl-otpCodeFieldInput {
+  background: rgba(2, 6, 23, 0.7) !important;
+  border: 1px solid rgba(51, 65, 85, 1) !important;
+  border-radius: 0.75rem !important;
+  color: #ffffff !important;
+  font-size: 20px !important;
+  font-weight: 900 !important;
+}
+
+/* Link reenviar código */
+.cl-formResendCodeLink {
+  color: #10b981 !important;
+  font-weight: 700 !important;
+}

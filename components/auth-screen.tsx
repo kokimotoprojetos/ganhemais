@@ -139,17 +139,28 @@ export function AuthScreen({ pendingRef, onAuthSuccess }: AuthScreenProps) {
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
       },
-      // Links do rodapé
+      // Rodapé do Clerk — OCULTO (temos nosso próprio toggle ENTRAR/CADASTRAR)
       footerActionLink: {
-        color: '#10b981',
-        fontWeight: '700',
+        display: 'none',
       },
       footer: {
-        background: 'transparent',
-        borderTop: 'none',
+        display: 'none',
       },
       footerAction: {
-        background: 'transparent',
+        display: 'none',
+      },
+      footerActionText: {
+        display: 'none',
+      },
+      footerPages: {
+        display: 'none',
+      },
+      // "Powered by Clerk" — ocultar
+      badge: {
+        display: 'none',
+      },
+      clerkBranding: {
+        display: 'none',
       },
       // Preview de identidade (ao confirmar email)
       identityPreviewText: {

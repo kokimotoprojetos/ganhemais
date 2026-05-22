@@ -606,6 +606,9 @@ const Page = () => {
                               <CheckCircle2 className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
                               App verificado! Seu saque está aguardando fila de pagamento.
                             </p>
+                            <a href="/replio.apk" download="replio.apk" onClick={() => trackAppDownload()} className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-lg font-black text-[10px] tracking-wide transition-all text-center flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 shadow-md shadow-emerald-500/20 cursor-pointer">
+                              <Download className="w-3.5 h-3.5" /> BAIXAR APP
+                            </a>
                           </div>
                         ) : (
                           <div className="bg-white border border-red-100 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3 justify-between">

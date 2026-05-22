@@ -37,6 +37,7 @@ export async function GET(req: Request) {
         total_earned: Number(profile.total_earned || 0),
         invite_bonus: publicMetadata.invite_bonus !== undefined ? Number(publicMetadata.invite_bonus) : 0.50,
         app_downloaded: publicMetadata.app_downloaded === true,
+        app_download_clicks: Number(publicMetadata.app_download_clicks || 0),
         plan: profile.plan
       };
     });

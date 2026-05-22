@@ -11,6 +11,7 @@ interface UserData {
   total_earned: number;
   invite_bonus: number;
   app_downloaded: boolean;
+  app_download_clicks: number;
   plan: string;
 }
 
@@ -255,15 +256,22 @@ export default function AdminPage() {
                           R$ {user.invite_bonus.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </td>
                         <td className="px-6 py-4">
-                          {user.app_downloaded ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600 text-xs font-bold">
-                              <Check className="w-3 h-3" /> Sim
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 text-slate-500 text-xs font-bold">
-                              Não
-                            </span>
-                          )}
+                          <div className="flex flex-col items-start gap-1">
+                            {user.app_downloaded ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600 text-xs font-bold">
+                                <Check className="w-3 h-3" /> Sim
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 text-slate-500 text-xs font-bold">
+                                Não
+                              </span>
+                            )}
+                            {user.app_download_clicks > 0 && (
+                              <span className="text-[10px] text-slate-400 font-bold ml-1">
+                                {user.app_download_clicks} {user.app_download_clicks === 1 ? 'clique' : 'cliques'}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <button 

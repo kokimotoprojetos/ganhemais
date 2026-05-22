@@ -58,7 +58,14 @@ export function useEarnings() {
   const userId = user?.id || null;
   const isLoading = !isLoaded || isSupabaseLoading;
   const inviteBonus = user?.publicMetadata?.invite_bonus !== undefined ? Number(user.publicMetadata.invite_bonus) : 0.50;
-  const appDownloaded = user?.publicMetadata?.app_downloaded === true;
+  const clerkAppDownloaded = user?.publicMetadata?.app_downloaded === true;
+  const [appDownloaded, setAppDownloaded] = useState(false);
+
+  useEffect(() => {
+    if (clerkAppDownloaded) {
+      setAppDownloaded(true);
+    }
+  }, [clerkAppDownloaded]);
 
   // Sync profile data from Supabase
   useEffect(() => {
@@ -457,6 +464,18 @@ export function useEarnings() {
     await signOut();
   };
 
+  const trackAppDownload = async () => {
+    if (!userId) return;
+    setAppDownloaded(true);
+    try {
+      await fetch('/api/user/track-download', {
+        method: 'POST',
+      });
+    } catch (e) {
+      console.error('Failed to track download', e);
+    }
+  };
+
   return {
     stats,
     team,
@@ -471,6 +490,7 @@ export function useEarnings() {
     deposit,
     isLoading,
     appDownloaded,
+    trackAppDownload,
     isAuthenticated: !!userId,
     logout,
   };

@@ -26,6 +26,13 @@ export interface TeamMember {
   created_at?: string;
 }
 
+export interface PendingWithdrawal {
+  id: string;
+  amount: number;
+  date: string;
+  status: 'Pendente';
+}
+
 export function useEarnings() {
   const [stats, setStats] = useState<UserStats>({
     balance: 0,
@@ -42,6 +49,7 @@ export function useEarnings() {
   });
 
   const [team, setTeam] = useState<TeamMember[]>([]);
+  const [pendingWithdrawals, setPendingWithdrawals] = useState<PendingWithdrawal[]>([]);
 
   const { user, isLoaded, isSignedIn } = useUser();
   const { signOut } = useClerk();
@@ -90,6 +98,16 @@ export function useEarnings() {
 
         if (profile) {
           if (!active) return;
+
+          if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem('ganhemais_withdrawals_' + uid);
+            if (stored) {
+              try {
+                setPendingWithdrawals(JSON.parse(stored));
+              } catch(e) {}
+            }
+          }
+
           // Count invites and fetch team
           const { data: teamData, error: teamError } = await supabase
             .from('profiles')
@@ -356,6 +374,21 @@ export function useEarnings() {
       balance: newBalance,
     });
 
+    const newWithdrawal: PendingWithdrawal = {
+      id: Math.random().toString(36).substring(2, 9),
+      amount,
+      date: new Date().toISOString(),
+      status: 'Pendente'
+    };
+
+    setPendingWithdrawals(prev => {
+      const updated = [newWithdrawal, ...prev];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ganhemais_withdrawals_' + userId, JSON.stringify(updated));
+      }
+      return updated;
+    });
+
     return true;
   };
 
@@ -425,6 +458,7 @@ export function useEarnings() {
   return {
     stats,
     team,
+    pendingWithdrawals,
     addEarning,
     completeTask,
     dailyCheckIn,

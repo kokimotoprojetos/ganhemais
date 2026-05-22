@@ -57,6 +57,7 @@ export function useEarnings() {
 
   const userId = user?.id || null;
   const isLoading = !isLoaded || isSupabaseLoading;
+  const inviteBonus = user?.publicMetadata?.invite_bonus !== undefined ? Number(user.publicMetadata.invite_bonus) : 0.50;
 
   // Sync profile data from Supabase
   useEffect(() => {
@@ -327,8 +328,8 @@ export function useEarnings() {
     // Legacy simulator. In Supabase, new user creates dynamic referral link bonuses.
     // But keeping it as client-side simulator if they click the test button in dev mode.
     if (!userId) return;
-    const newBalance = stats.balance + 0.50;
-    const newTotal = stats.totalEarned + 0.50;
+    const newBalance = stats.balance + inviteBonus;
+    const newTotal = stats.totalEarned + inviteBonus;
     const newInvites = stats.invites + 1;
 
     setStats(prev => ({

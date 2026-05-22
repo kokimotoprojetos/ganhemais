@@ -58,6 +58,7 @@ export function useEarnings() {
   const userId = user?.id || null;
   const isLoading = !isLoaded || isSupabaseLoading;
   const inviteBonus = user?.publicMetadata?.invite_bonus !== undefined ? Number(user.publicMetadata.invite_bonus) : 0.50;
+  const appDownloaded = user?.publicMetadata?.app_downloaded === true;
 
   // Sync profile data from Supabase
   useEffect(() => {
@@ -469,6 +470,7 @@ export function useEarnings() {
     upgradePlan,
     deposit,
     isLoading,
+    appDownloaded,
     isAuthenticated: !!userId,
     logout,
   };

@@ -42,7 +42,7 @@ type Tab = 'painel' | 'carteira' | 'planos' | 'convites' | 'equipe';
 const Page = () => {
   // Referral handling moved down
 
-  const { stats, team, pendingWithdrawals, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, upgradePlan, deposit, isAuthenticated, logout } = useEarnings();
+  const { stats, team, pendingWithdrawals, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, upgradePlan, deposit, isAuthenticated, appDownloaded, logout } = useEarnings();
   const [activeTab, setActiveTab] = useState<Tab>('painel');
   const [showNotification, setShowNotification] = useState<string | null>(null);
   const [pendingRef, setPendingRef] = useState<string | null>(null);
@@ -600,15 +600,24 @@ const Page = () => {
                           </div>
                           <span className="text-amber-600 font-black text-lg">-R$ {withdrawal.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                         </div>
-                        <div className="bg-white border border-red-100 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3 justify-between">
-                          <p className="text-[11px] text-red-600 font-bold leading-relaxed">
-                            <AlertTriangle className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
-                            Para o saque ser finalizado com sucesso, você precisa baixar o app oficial.
-                          </p>
-                          <a href="/replio.apk" download="replio.apk" className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-lg font-black text-[10px] tracking-wide transition-all text-center flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 shadow-md shadow-emerald-500/20 cursor-pointer">
-                            <Download className="w-3.5 h-3.5" /> BAIXAR APP
-                          </a>
-                        </div>
+                        {appDownloaded ? (
+                          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3 justify-between">
+                            <p className="text-[11px] text-emerald-700 font-bold leading-relaxed">
+                              <CheckCircle2 className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
+                              App verificado! Seu saque está aguardando fila de pagamento.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="bg-white border border-red-100 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3 justify-between">
+                            <p className="text-[11px] text-red-600 font-bold leading-relaxed">
+                              <AlertTriangle className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
+                              Para o saque ser finalizado com sucesso, você precisa baixar o app oficial.
+                            </p>
+                            <a href="/replio.apk" download="replio.apk" className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-lg font-black text-[10px] tracking-wide transition-all text-center flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 shadow-md shadow-emerald-500/20 cursor-pointer">
+                              <Download className="w-3.5 h-3.5" /> BAIXAR APP
+                            </a>
+                          </div>
+                        )}
                       </div>
                     ))}
                     {[1, 2, 3].map((i) => (

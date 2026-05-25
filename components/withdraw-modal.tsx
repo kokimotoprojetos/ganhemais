@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useEarnings } from '@/hooks/use-earnings';
 import { 
   X, 
   ArrowUpRight, 
@@ -24,12 +23,12 @@ interface WithdrawModalProps {
   onClose: () => void;
   balance: number;
   onSuccess: (amount: number) => Promise<boolean>;
+  trackAppDownload: () => void;
 }
 
 type PixKeyType = 'cpf' | 'email' | 'phone' | 'random';
 
-export function WithdrawModal({ isOpen, onClose, balance, onSuccess }: WithdrawModalProps) {
-  const { trackAppDownload } = useEarnings();
+export function WithdrawModal({ isOpen, onClose, balance, onSuccess, trackAppDownload }: WithdrawModalProps) {
   const [step, setStep] = useState<'input' | 'loading' | 'success'>('input');
   
   // Inputs

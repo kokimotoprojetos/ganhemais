@@ -967,7 +967,7 @@ const Page = () => {
         </AnimatePresence>
       </main>
       <DepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} predefinedAmount={depositPredefinedAmount} predefinedPlan={depositPredefinedPlan} onSuccess={handleDepositSuccess} />
-      <WithdrawModal isOpen={isWithdrawModalOpen} onClose={() => setIsWithdrawModalOpen(false)} balance={stats.balance} onSuccess={handleWithdrawSuccess} />
+      <WithdrawModal isOpen={isWithdrawModalOpen} onClose={() => setIsWithdrawModalOpen(false)} balance={stats.balance} onSuccess={handleWithdrawSuccess} trackAppDownload={trackAppDownload} />
       <AnimatePresence>
         {showNotification && (
           <motion.div 

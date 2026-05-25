@@ -310,11 +310,13 @@ export function useEarnings() {
 
     const nextCompletedTasks = [...stats.completedTasks, taskId];
     const nextCompletedTodayCount = currentCompletedToday + 1;
+    const newBalance = stats.balance + reward;
+    const newTotalEarned = stats.totalEarned + reward;
 
     setStats(prev => ({
       ...prev,
-      balance: prev.balance + reward,
-      totalEarned: prev.totalEarned + reward,
+      balance: newBalance,
+      totalEarned: newTotalEarned,
       tasksCompleted: prev.tasksCompleted + 1,
       completedTasks: nextCompletedTasks,
       completedTodayCount: nextCompletedTodayCount,
@@ -322,8 +324,8 @@ export function useEarnings() {
     }));
 
     await updateProfileFields({
-      balance: stats.balance + reward,
-      total_earned: stats.totalEarned + reward,
+      balance: newBalance,
+      total_earned: newTotalEarned,
       completed_tasks: nextCompletedTasks,
       completed_today_count: nextCompletedTodayCount,
       last_task_date: today,

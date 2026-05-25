@@ -760,13 +760,6 @@ const Page = () => {
                       <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-emerald-300">Total Ganho</p>
                     </div>
                   </div>
-
-                  <button 
-                    onClick={handleInvite}
-                    className="mt-12 text-[10px] font-black text-emerald-300 hover:text-white transition-colors"
-                  >
-                    Simular novo convidado (Apenas para teste)
-                  </button>
                 </div>
                 
                 {/* Background Shapes */}

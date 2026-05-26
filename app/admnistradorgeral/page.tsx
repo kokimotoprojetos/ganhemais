@@ -176,6 +176,11 @@ export default function AdminPage() {
                   <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
                   {users.filter(u => u.balance > 0).length} com Saldo
                 </span>
+                <span className="text-slate-300">•</span>
+                <span className="inline-flex items-center gap-1.5 text-xs font-black text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">
+                  <Smartphone className="w-3.5 h-3.5 text-blue-600" />
+                  {users.filter(u => u.app_downloaded).length} com App
+                </span>
               </div>
             </div>
           </div>

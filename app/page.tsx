@@ -46,6 +46,19 @@ const Page = () => {
   const [activeTab, setActiveTab] = useState<Tab>('painel');
   const [showNotification, setShowNotification] = useState<string | null>(null);
   const [pendingRef, setPendingRef] = useState<string | null>(null);
+  const [showWelcomeModal, setShowWelcomeModal] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('ganhemais_welcome_seen') !== 'true';
+    }
+    return false;
+  });
+
+  const handleCloseWelcome = () => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('ganhemais_welcome_seen', 'true');
+    }
+    setShowWelcomeModal(false);
+  };
   const handleAuthSuccess = useCallback(() => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('ganhemais_pending_ref');
@@ -968,6 +981,62 @@ const Page = () => {
       </main>
       <DepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} predefinedAmount={depositPredefinedAmount} predefinedPlan={depositPredefinedPlan} onSuccess={handleDepositSuccess} />
       <WithdrawModal isOpen={isWithdrawModalOpen} onClose={() => setIsWithdrawModalOpen(false)} balance={stats.balance} onSuccess={handleWithdrawSuccess} trackAppDownload={trackAppDownload} />
+      <AnimatePresence>
+        {showWelcomeModal && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+            {/* Backdrop overlay */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleCloseWelcome}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-md"
+            />
+
+            {/* Modal Box */}
+            <motion.div 
+              initial={{ scale: 0.95, y: 15, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.95, y: 15, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              className="relative bg-slate-900 border border-slate-800 w-full max-w-md rounded-[2.5rem] p-8 shadow-[0_30px_70px_rgba(0,0,0,0.8)] z-10 overflow-hidden flex flex-col text-center border-b-4 border-b-emerald-500"
+            >
+              {/* Header Icon */}
+              <div className="w-20 h-20 bg-emerald-500/10 border-4 border-emerald-500/30 text-emerald-400 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-[0_0_50px_rgba(16,185,129,0.2)]">
+                <Gift className="w-10 h-10 animate-bounce" />
+              </div>
+
+              {/* Title & Desc */}
+              <h3 className="text-3xl font-black text-white tracking-tight mb-3">Bem-vindo ao GanheMais!</h3>
+              <p className="text-slate-300 font-semibold text-xs leading-relaxed max-w-sm mx-auto mb-8">
+                Parabéns por fazer parte da maior comunidade de micro-investimento e tarefas digitais do Brasil. Comece a faturar agora!
+              </p>
+
+              {/* Buttons */}
+              <div className="w-full space-y-4">
+                <a 
+                  href="https://t.me/ReplioGanheMais" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-full bg-[#0088cc] hover:bg-[#0077b5] text-white py-4.5 rounded-2xl font-black text-sm tracking-wide shadow-xl shadow-sky-500/10 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <svg className="w-5 h-5 fill-current text-white" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.53-1.39.51-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.36-.49.99-.75 3.87-1.69 6.45-2.8 7.74-3.33 3.69-1.52 4.45-1.78 4.95-1.79.11 0 .36.03.52.16.14.12.18.28.19.4z"/>
+                  </svg>
+                  GRUPO OFICIAL GANHE MAIS
+                </a>
+                
+                <button
+                  onClick={handleCloseWelcome}
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 py-4.5 rounded-2xl font-black text-sm tracking-wide shadow-xl shadow-emerald-500/10 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  ENTRAR NA PLATAFORMA
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {showNotification && (
           <motion.div 

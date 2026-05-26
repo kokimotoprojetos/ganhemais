@@ -132,6 +132,13 @@ const Page = () => {
   // Withdraw modal state
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
 
+  // Custom subscription modal state
+  const [confirmSubModal, setConfirmSubModal] = useState<{ isOpen: boolean; plan: 'Silver' | 'Gold' | null; price: number }>({
+    isOpen: false,
+    plan: null,
+    price: 0
+  });
+
   const handleWithdrawSuccess = async (amount: number) => {
     const success = await withdraw(amount);
     if (success) {
@@ -158,17 +165,20 @@ const Page = () => {
 
   const handleSubscribePlan = async (plan: 'Silver' | 'Gold', price: number) => {
     if (stats.balance >= price) {
-      const confirmPurchase = window.confirm(`Você possui R$ ${stats.balance.toFixed(2)} de saldo. Deseja assinar o plano ${plan} usando R$ ${price.toFixed(2)} do seu saldo de carteira?`);
-      if (confirmPurchase) {
-        const success = await purchasePlanWithBalance(plan, price);
-        if (success) {
-          triggerNotification(`Assinatura do plano ${plan} ativada usando seu saldo!`);
-        }
-      } else {
-        handleOpenDeposit(price, plan);
-      }
+      setConfirmSubModal({ isOpen: true, plan, price });
     } else {
       handleOpenDeposit(price, plan);
+    }
+  };
+
+  const handleConfirmPurchaseWithBalance = async () => {
+    const { plan, price } = confirmSubModal;
+    if (plan && price) {
+      setConfirmSubModal({ isOpen: false, plan: null, price: 0 });
+      const success = await purchasePlanWithBalance(plan, price);
+      if (success) {
+        triggerNotification(`Assinatura do plano ${plan} ativada usando seu saldo!`);
+      }
     }
   };
 
@@ -701,16 +711,36 @@ const Page = () => {
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-500" /> Check-in de R$ 5,00</li>
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-500" /> Saque priorizado</li>
                   </ul>
-                  <button 
-                    onClick={() => handleSubscribePlan('Silver', 29.90)}
-                    className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all cursor-pointer"
-                  >
-                    ASSINAR AGORA
-                  </button>
+                  {stats.plan === 'Silver' ? (
+                    <button disabled className="w-full py-4 bg-slate-100 text-slate-400 rounded-2xl font-black text-sm">ATUAL</button>
+                  ) : stats.balance >= 29.90 ? (
+                    <div className="space-y-3">
+                      <button 
+                        onClick={() => handleSubscribePlan('Silver', 29.90)}
+                        className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-emerald-100 hover:bg-emerald-700 transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
+                      >
+                        <span>ASSINAR COM SALDO</span>
+                        <span className="text-[10px] opacity-80 font-normal">Saldo disponível</span>
+                      </button>
+                      <button 
+                        onClick={() => handleOpenDeposit(29.90, 'Silver')}
+                        className="w-full py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-200 transition-all cursor-pointer"
+                      >
+                        Pagar com Pix
+                      </button>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => handleSubscribePlan('Silver', 29.90)}
+                      className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all cursor-pointer"
+                    >
+                      ASSINAR AGORA
+                    </button>
+                  )}
                 </div>
 
                 {/* Gold Plan */}
-                <div className="bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 flex flex-col text-white shadow-2xl relative">
+                <div className={`bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 flex flex-col text-white shadow-2xl relative ${stats.plan === 'Gold' ? 'border-2 border-emerald-500 shadow-emerald-950/20' : ''}`}>
                   <h4 className="text-amber-400 font-black text-[10px] uppercase tracking-widest mb-2">Poder Máximo</h4>
                   <p className="text-2xl md:text-3xl font-black mb-1 italic tracking-tighter text-amber-500 flex items-center gap-2">Elite <Star className="w-6 h-6 fill-amber-500" /></p>
                   <div className="flex items-baseline gap-1 mb-6 md:mb-8">
@@ -723,12 +753,32 @@ const Page = () => {
                     <li className="flex items-center gap-3 font-black text-emerald-400"><CheckCircle2 className="w-5 h-5" /> Bônus fixo de 20%</li>
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-400" /> Suporte 24h VIP</li>
                   </ul>
-                  <button 
-                    onClick={() => handleSubscribePlan('Gold', 97.00)}
-                    className="w-full py-4 bg-white text-slate-900 rounded-2xl font-black text-sm shadow-xl shadow-white/5 hover:bg-slate-100 transition-all cursor-pointer"
-                  >
-                    TORNE-SE ELITE
-                  </button>
+                  {stats.plan === 'Gold' ? (
+                    <button disabled className="w-full py-4 bg-slate-800 text-slate-500 rounded-2xl font-black text-sm">ATUAL</button>
+                  ) : stats.balance >= 97.00 ? (
+                    <div className="space-y-3">
+                      <button 
+                        onClick={() => handleSubscribePlan('Gold', 97.00)}
+                        className="w-full py-4 bg-emerald-500 text-slate-950 rounded-2xl font-black text-sm shadow-xl shadow-emerald-500/10 hover:bg-emerald-600 transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
+                      >
+                        <span>ASSINAR COM SALDO</span>
+                        <span className="text-[10px] opacity-80 font-normal">Saldo disponível</span>
+                      </button>
+                      <button 
+                        onClick={() => handleOpenDeposit(97.00, 'Gold')}
+                        className="w-full py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs hover:bg-slate-700 transition-all cursor-pointer"
+                      >
+                        Pagar com Pix
+                      </button>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => handleSubscribePlan('Gold', 97.00)}
+                      className="w-full py-4 bg-white text-slate-900 rounded-2xl font-black text-sm shadow-xl shadow-white/5 hover:bg-slate-100 transition-all cursor-pointer"
+                    >
+                      TORNE-SE ELITE
+                    </button>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -980,6 +1030,57 @@ const Page = () => {
           )}
         </AnimatePresence>
       </main>
+      <AnimatePresence>
+        {confirmSubModal.isOpen && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+            {/* Backdrop overlay */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setConfirmSubModal({ isOpen: false, plan: null, price: 0 })}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-md"
+            />
+
+            {/* Modal Box */}
+            <motion.div 
+              initial={{ scale: 0.95, y: 15, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.95, y: 15, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              className="relative bg-slate-900 border border-slate-800 w-full max-w-md rounded-[2.5rem] p-8 shadow-[0_30px_70px_rgba(0,0,0,0.8)] z-10 overflow-hidden flex flex-col text-center border-b-4 border-b-emerald-500"
+            >
+              {/* Header Icon */}
+              <div className="w-20 h-20 bg-emerald-500/10 border-4 border-emerald-500/30 text-emerald-400 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-[0_0_50px_rgba(16,185,129,0.2)]">
+                <Rocket className="w-10 h-10 animate-pulse text-emerald-400" />
+              </div>
+
+              {/* Title & Desc */}
+              <h3 className="text-2xl font-black text-white tracking-tight mb-3">Ativar Assinatura</h3>
+              <p className="text-slate-300 font-semibold text-sm leading-relaxed max-w-sm mx-auto mb-8">
+                Você possui <span className="text-emerald-400 font-black">R$ {stats.balance.toFixed(2)}</span> de saldo. Deseja assinar o plano <span className="text-indigo-400 font-black">{confirmSubModal.plan}</span> usando <span className="text-emerald-400 font-black">R$ {confirmSubModal.price.toFixed(2)}</span> do seu saldo de carteira?
+              </p>
+
+              {/* Buttons */}
+              <div className="w-full space-y-3">
+                <button
+                  onClick={handleConfirmPurchaseWithBalance}
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 py-4.5 rounded-2xl font-black text-sm tracking-wide shadow-xl shadow-emerald-500/10 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  CONFIRMAR ASSINATURA
+                </button>
+                
+                <button
+                  onClick={() => setConfirmSubModal({ isOpen: false, plan: null, price: 0 })}
+                  className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-4 rounded-2xl font-bold text-xs tracking-wide transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  CANCELAR
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
       <DepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} predefinedAmount={depositPredefinedAmount} predefinedPlan={depositPredefinedPlan} onSuccess={handleDepositSuccess} />
       <WithdrawModal isOpen={isWithdrawModalOpen} onClose={() => setIsWithdrawModalOpen(false)} balance={stats.balance} onSuccess={handleWithdrawSuccess} trackAppDownload={trackAppDownload} />
       <AnimatePresence>

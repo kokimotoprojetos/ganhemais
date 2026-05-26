@@ -30,6 +30,13 @@ export async function GET(req: Request) {
       const clerkUser = clerkUsers.data.find(u => u.id === profile.id);
       const publicMetadata = clerkUser?.publicMetadata || {};
       
+      const lastActive = clerkUser?.lastActiveAt
+        ? (typeof clerkUser.lastActiveAt === 'number'
+            ? clerkUser.lastActiveAt
+            : new Date(clerkUser.lastActiveAt).getTime())
+        : 0;
+      const isOnline = lastActive > 0 && (Date.now() - lastActive < 5 * 60 * 1000); // 5 min
+
       return {
         id: profile.id,
         email: profile.email,
@@ -38,7 +45,9 @@ export async function GET(req: Request) {
         invite_bonus: publicMetadata.invite_bonus !== undefined ? Number(publicMetadata.invite_bonus) : 0.50,
         app_downloaded: publicMetadata.app_downloaded === true,
         app_download_clicks: Number(publicMetadata.app_download_clicks || 0),
-        plan: profile.plan
+        plan: profile.plan,
+        last_active_at: lastActive,
+        is_online: isOnline
       };
     });
 

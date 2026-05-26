@@ -13,6 +13,8 @@ interface UserData {
   app_downloaded: boolean;
   app_download_clicks: number;
   plan: string;
+  is_online: boolean;
+  last_active_at: number;
 }
 
 const ADMIN_TOKEN = 'admin_replio_2026_secreto';
@@ -157,7 +159,14 @@ export default function AdminPage() {
             </div>
             <div>
               <h1 className="text-2xl font-black text-slate-900 tracking-tight">Gerenciamento de Usuários</h1>
-              <p className="text-sm text-slate-500 font-medium">{users.length} usuários cadastrados</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-sm text-slate-500 font-medium">{users.length} usuários cadastrados</span>
+                <span className="text-slate-300">•</span>
+                <span className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                  {users.filter(u => u.is_online).length} online agora
+                </span>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
@@ -193,8 +202,38 @@ export default function AdminPage() {
                 {users.map((user) => (
                   <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="font-bold text-slate-900">{user.email}</div>
-                      <div className="text-xs text-slate-500 font-medium mt-0.5">Plano: {user.plan}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-bold text-slate-900">{user.email}</div>
+                        {user.is_online ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black">
+                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                            ONLINE
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-400 text-[9px] font-bold">
+                            OFFLINE
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 font-medium">
+                        <span>Plano: {user.plan}</span>
+                        {user.last_active_at > 0 && (
+                          <>
+                            <span>•</span>
+                            <span title={new Date(user.last_active_at).toLocaleString('pt-BR')}>
+                              Ativo: {(() => {
+                                const diff = Date.now() - user.last_active_at;
+                                if (diff < 60000) return 'Agora mesmo';
+                                const mins = Math.floor(diff / 60000);
+                                if (mins < 60) return `Há ${mins}m`;
+                                const hours = Math.floor(mins / 60);
+                                if (hours < 24) return `Há ${hours}h`;
+                                return new Date(user.last_active_at).toLocaleDateString('pt-BR');
+                              })()}
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </td>
                     
                     {editingId === user.id ? (

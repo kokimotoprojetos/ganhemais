@@ -67,7 +67,7 @@ export async function PUT(req: Request) {
   }
 
   try {
-    const { id, balance, invite_bonus, app_downloaded } = await req.json();
+    const { id, balance, invite_bonus, app_downloaded, plan } = await req.json();
 
     if (!id) throw new Error('User ID is required');
 
@@ -75,11 +75,15 @@ export async function PUT(req: Request) {
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const adminSupabase = createClient(supabaseUrl!, supabaseKey!);
 
-    // Update Supabase if balance changed
-    if (balance !== undefined) {
+    // Update Supabase if balance or plan changed
+    const updateFields: Record<string, any> = {};
+    if (balance !== undefined) updateFields.balance = Number(balance);
+    if (plan !== undefined) updateFields.plan = plan;
+
+    if (Object.keys(updateFields).length > 0) {
       const { error } = await adminSupabase
         .from('profiles')
-        .update({ balance: Number(balance) })
+        .update(updateFields)
         .eq('id', id);
       if (error) throw error;
     }

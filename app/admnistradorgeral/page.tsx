@@ -28,12 +28,18 @@ export default function AdminPage() {
   
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredUsers = users.filter(user => 
+    user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<{ balance: string; invite_bonus: string; app_downloaded: boolean }>({
+  const [editForm, setEditForm] = useState<{ balance: string; invite_bonus: string; app_downloaded: boolean; plan: string }>({
     balance: '0',
     invite_bonus: '0.50',
-    app_downloaded: false
+    app_downloaded: false,
+    plan: 'Basic'
   });
 
   const handleLogin = (e: React.FormEvent) => {
@@ -70,11 +76,34 @@ export default function AdminPage() {
     setEditForm({
       balance: user.balance.toString(),
       invite_bonus: user.invite_bonus.toString(),
-      app_downloaded: user.app_downloaded
+      app_downloaded: user.app_downloaded,
+      plan: user.plan
     });
   };
 
   const handleSave = async (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    let finalBalance = Number(editForm.balance);
+    const planChanged = editForm.plan !== user.plan;
+
+    if (planChanged) {
+      if (editForm.plan === 'Silver') {
+        if (finalBalance < 29.90) {
+          alert('Saldo insuficiente! Para ativar o plano Silver, o usuário precisa ter no mínimo R$ 29,90 de saldo em conta.');
+          return;
+        }
+        finalBalance = Number((finalBalance - 29.90).toFixed(2));
+      } else if (editForm.plan === 'Gold') {
+        if (finalBalance < 97.00) {
+          alert('Saldo insuficiente! Para ativar o plano Gold, o usuário precisa ter no mínimo R$ 97,00 de saldo em conta.');
+          return;
+        }
+        finalBalance = Number((finalBalance - 97.00).toFixed(2));
+      }
+    }
+
     try {
       const res = await fetch('/api/admin/users', {
         method: 'PUT',
@@ -84,9 +113,10 @@ export default function AdminPage() {
         },
         body: JSON.stringify({
           id: userId,
-          balance: Number(editForm.balance),
+          balance: finalBalance,
           invite_bonus: Number(editForm.invite_bonus),
-          app_downloaded: editForm.app_downloaded
+          app_downloaded: editForm.app_downloaded,
+          plan: editForm.plan
         })
       });
       if (!res.ok) throw new Error('Falha ao atualizar usuário');
@@ -201,6 +231,25 @@ export default function AdminPage() {
           </div>
         </div>
 
+        {/* Search Bar */}
+        <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 flex items-center gap-3">
+          <input 
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Pesquisar por e-mail do usuário (ex: usuario@gmail.com)..."
+            className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-semibold outline-none focus:border-slate-900 focus:bg-white transition-all shadow-sm text-slate-800"
+          />
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold px-4 py-3 rounded-xl text-xs transition-colors shrink-0"
+            >
+              Limpar Filtro
+            </button>
+          )}
+        </div>
+
         {/* Users Table */}
         <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
@@ -216,7 +265,7 @@ export default function AdminPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <tr 
                     key={user.id} 
                     className={`transition-colors duration-200 ${
@@ -257,7 +306,22 @@ export default function AdminPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 font-medium">
-                        <span>Plano: {user.plan}</span>
+                        {editingId === user.id ? (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wide">Plano:</span>
+                            <select 
+                              value={editForm.plan}
+                              onChange={(e) => setEditForm(prev => ({ ...prev, plan: e.target.value }))}
+                              className="bg-white border border-slate-300 rounded px-1.5 py-0.5 text-xs text-slate-700 font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            >
+                              <option value="Basic">Básico (Grátis)</option>
+                              <option value="Silver">Silver (R$ 29,90)</option>
+                              <option value="Gold">Gold (R$ 97,00)</option>
+                            </select>
+                          </div>
+                        ) : (
+                          <span>Plano: {user.plan}</span>
+                        )}
                         {user.last_active_at > 0 && (
                           <>
                             <span>•</span>
@@ -372,9 +436,9 @@ export default function AdminPage() {
                   </tr>
                 ))}
                 
-                {users.length === 0 && !isLoading && (
+                {filteredUsers.length === 0 && !isLoading && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-slate-500 font-medium">
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500 font-medium">
                       Nenhum usuário encontrado.
                     </td>
                   </tr>

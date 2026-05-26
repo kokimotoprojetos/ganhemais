@@ -29,6 +29,7 @@ export async function GET(req: Request) {
     const merged = profiles.map(profile => {
       const clerkUser = clerkUsers.data.find(u => u.id === profile.id);
       const publicMetadata = clerkUser?.publicMetadata || {};
+      const unsafeMetadata = clerkUser?.unsafeMetadata || {};
       
       const lastActive = clerkUser?.lastActiveAt
         ? (typeof clerkUser.lastActiveAt === 'number'
@@ -50,7 +51,8 @@ export async function GET(req: Request) {
         plan: profile.plan,
         last_active_at: lastActive,
         is_online: isOnline,
-        invites
+        invites,
+        withdrawals: unsafeMetadata.withdrawals || []
       };
     });
 
@@ -67,7 +69,7 @@ export async function PUT(req: Request) {
   }
 
   try {
-    const { id, balance, invite_bonus, app_downloaded, plan } = await req.json();
+    const { id, balance, invite_bonus, app_downloaded, plan, withdrawals } = await req.json();
 
     if (!id) throw new Error('User ID is required');
 
@@ -90,12 +92,18 @@ export async function PUT(req: Request) {
 
     // Update Clerk Metadata
     const client = await clerkClient();
-    await client.users.updateUserMetadata(id, {
+    const updateMetadata: Record<string, any> = {
       publicMetadata: {
         invite_bonus: Number(invite_bonus),
         app_downloaded: Boolean(app_downloaded)
       }
-    });
+    };
+    if (withdrawals !== undefined) {
+      updateMetadata.unsafeMetadata = {
+        withdrawals: withdrawals
+      };
+    }
+    await client.users.updateUserMetadata(id, updateMetadata);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

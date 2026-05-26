@@ -30,7 +30,7 @@ export interface PendingWithdrawal {
   id: string;
   amount: number;
   date: string;
-  status: 'Pendente';
+  status: 'Pendente' | 'Sucesso' | 'Recusado';
 }
 
 export function useEarnings() {
@@ -66,6 +66,15 @@ export function useEarnings() {
       setAppDownloaded(true);
     }
   }, [clerkAppDownloaded]);
+
+  // Sync withdrawals when metadata updates
+  useEffect(() => {
+    if (!userId) return;
+    const metadataWithdrawals = user?.unsafeMetadata?.withdrawals as PendingWithdrawal[] | undefined;
+    if (metadataWithdrawals && Array.isArray(metadataWithdrawals)) {
+      setPendingWithdrawals(metadataWithdrawals);
+    }
+  }, [userId, user?.unsafeMetadata?.withdrawals]);
 
   // Sync profile data from Supabase
   useEffect(() => {
@@ -109,11 +118,16 @@ export function useEarnings() {
           if (!active) return;
 
           if (typeof window !== 'undefined') {
-            const stored = localStorage.getItem('ganhemais_withdrawals_' + uid);
-            if (stored) {
-              try {
-                setPendingWithdrawals(JSON.parse(stored));
-              } catch(e) {}
+            const metadataWithdrawals = user?.unsafeMetadata?.withdrawals as PendingWithdrawal[] | undefined;
+            if (metadataWithdrawals && Array.isArray(metadataWithdrawals)) {
+              setPendingWithdrawals(metadataWithdrawals);
+            } else {
+              const stored = localStorage.getItem('ganhemais_withdrawals_' + uid);
+              if (stored) {
+                try {
+                  setPendingWithdrawals(JSON.parse(stored));
+                } catch(e) {}
+              }
             }
           }
 
@@ -371,7 +385,7 @@ export function useEarnings() {
   };
 
   const withdraw = async (amount: number) => {
-    if (!userId) return false;
+    if (!userId || !user) return false;
     if (stats.balance < amount) return false;
 
     const newBalance = stats.balance - amount;
@@ -392,13 +406,25 @@ export function useEarnings() {
       status: 'Pendente'
     };
 
-    setPendingWithdrawals(prev => {
-      const updated = [newWithdrawal, ...prev];
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('ganhemais_withdrawals_' + userId, JSON.stringify(updated));
-      }
-      return updated;
-    });
+    const currentWithdrawals = (user.unsafeMetadata?.withdrawals as PendingWithdrawal[] || []);
+    const updated = [newWithdrawal, ...currentWithdrawals];
+
+    setPendingWithdrawals(updated);
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ganhemais_withdrawals_' + userId, JSON.stringify(updated));
+    }
+
+    try {
+      await user.update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          withdrawals: updated
+        }
+      });
+    } catch (err) {
+      console.error("Failed to update Clerk metadata with withdrawal:", err);
+    }
 
     return true;
   };

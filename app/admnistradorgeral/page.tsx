@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { motion } from 'motion/react';
-import { Check, Edit2, LogOut, RefreshCw, Save, ShieldAlert, Smartphone, Users, X, Star, Crown } from 'lucide-react';
+import { Check, Edit2, LogOut, RefreshCw, Save, ShieldAlert, Smartphone, Users, X, Star, Crown, ChevronDown, ChevronUp, History, Plus, Trash2, Calendar, Clock } from 'lucide-react';
 
 interface UserData {
   id: string;
@@ -16,9 +16,23 @@ interface UserData {
   is_online: boolean;
   last_active_at: number;
   invites: number;
+  withdrawals?: any[];
 }
 
 const ADMIN_TOKEN = 'admin_replio_2026_secreto';
+
+// Helper to format ISO date to YYYY-MM-DDTHH:MM local format
+const getLocalDateTimeString = (d: Date = new Date()) => {
+  const pad = (num: number) => {
+    const norm = Math.abs(Math.floor(num));
+    return (norm < 10 ? '0' : '') + norm;
+  };
+  return d.getFullYear() +
+    '-' + pad(d.getMonth() + 1) +
+    '-' + pad(d.getDate()) +
+    'T' + pad(d.getHours()) +
+    ':' + pad(d.getMinutes());
+};
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -29,6 +43,138 @@ export default function AdminPage() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
+  const [newWithdrawalForm, setNewWithdrawalForm] = useState<{ amount: string; date: string; status: 'Sucesso' | 'Pendente' | 'Recusado' }>({
+    amount: '',
+    date: getLocalDateTimeString(),
+    status: 'Sucesso'
+  });
+  
+  const [editingWithdrawalId, setEditingWithdrawalId] = useState<string | null>(null);
+  const [editWithdrawalForm, setEditWithdrawalForm] = useState<{ amount: string; date: string; status: 'Sucesso' | 'Pendente' | 'Recusado' }>({
+    amount: '',
+    date: '',
+    status: 'Sucesso'
+  });
+
+  const handleAddWithdrawal = async (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    const amount = Number(newWithdrawalForm.amount);
+    if (isNaN(amount) || amount <= 0) {
+      alert("Por favor, digite um valor de saque válido.");
+      return;
+    }
+
+    const date = newWithdrawalForm.date ? new Date(newWithdrawalForm.date).toISOString() : new Date().toISOString();
+
+    const newWithdrawal = {
+      id: Math.random().toString(36).substring(2, 9),
+      amount,
+      date,
+      status: newWithdrawalForm.status
+    };
+
+    const currentWithdrawals = user.withdrawals || [];
+    const updated = [newWithdrawal, ...currentWithdrawals];
+
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${ADMIN_TOKEN}`
+        },
+        body: JSON.stringify({
+          id: userId,
+          withdrawals: updated
+        })
+      });
+      if (!res.ok) throw new Error('Falha ao adicionar saque');
+      
+      setNewWithdrawalForm({ amount: '', date: getLocalDateTimeString(), status: 'Sucesso' });
+      fetchUsers(); // Refresh data
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleDeleteWithdrawal = async (userId: string, withdrawalId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    if (!window.confirm("Tem certeza que deseja excluir este saque?")) return;
+
+    const updated = (user.withdrawals || []).filter((w: any) => w.id !== withdrawalId);
+
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${ADMIN_TOKEN}`
+        },
+        body: JSON.stringify({
+          id: userId,
+          withdrawals: updated
+        })
+      });
+      if (!res.ok) throw new Error('Falha ao excluir saque');
+      fetchUsers(); // Refresh data
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleStartEditWithdrawal = (w: any) => {
+    setEditingWithdrawalId(w.id);
+    setEditWithdrawalForm({
+      amount: w.amount.toString(),
+      date: getLocalDateTimeString(new Date(w.date)),
+      status: w.status
+    });
+  };
+
+  const handleSaveWithdrawal = async (userId: string, withdrawalId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    const amount = Number(editWithdrawalForm.amount);
+    if (isNaN(amount) || amount <= 0) {
+      alert("Por favor, digite um valor de saque válido.");
+      return;
+    }
+
+    const date = editWithdrawalForm.date ? new Date(editWithdrawalForm.date).toISOString() : new Date().toISOString();
+
+    const updated = (user.withdrawals || []).map((w: any) => {
+      if (w.id === withdrawalId) {
+        return { ...w, amount, date, status: editWithdrawalForm.status };
+      }
+      return w;
+    });
+
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${ADMIN_TOKEN}`
+        },
+        body: JSON.stringify({
+          id: userId,
+          withdrawals: updated
+        })
+      });
+      if (!res.ok) throw new Error('Falha ao atualizar saque');
+      setEditingWithdrawalId(null);
+      fetchUsers(); // Refresh data
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
 
   const filteredUsers = users.filter(user => 
     user.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -266,16 +412,16 @@ export default function AdminPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredUsers.map((user) => (
-                  <tr 
-                    key={user.id} 
-                    className={`transition-colors duration-200 ${
-                      user.plan === 'Gold' 
-                        ? 'bg-amber-500/[0.04] border-l-4 border-l-amber-500 hover:bg-amber-500/[0.08]' 
-                        : user.plan === 'Silver' 
-                          ? 'bg-indigo-500/[0.04] border-l-4 border-l-indigo-500 hover:bg-indigo-500/[0.08]' 
-                          : 'hover:bg-slate-50/50'
-                    }`}
-                  >
+                  <Fragment key={user.id}>
+                    <tr 
+                      className={`transition-colors duration-200 ${
+                        user.plan === 'Gold' 
+                          ? 'bg-amber-500/[0.04] border-l-4 border-l-amber-500 hover:bg-amber-500/[0.08]' 
+                          : user.plan === 'Silver' 
+                            ? 'bg-indigo-500/[0.04] border-l-4 border-l-indigo-500 hover:bg-indigo-500/[0.08]' 
+                            : 'hover:bg-slate-50/50'
+                      }`}
+                    >
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap items-center gap-2">
                         <div className="font-bold text-slate-900">{user.email}</div>
@@ -424,17 +570,232 @@ export default function AdminPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button 
-                            onClick={() => handleEdit(user)}
-                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" /> Editar
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button 
+                              onClick={() => {
+                                setExpandedUserId(expandedUserId === user.id ? null : user.id);
+                                setNewWithdrawalForm({
+                                  amount: '',
+                                  date: getLocalDateTimeString(),
+                                  status: 'Sucesso'
+                                });
+                                setEditingWithdrawalId(null);
+                              }}
+                              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                                expandedUserId === user.id 
+                                  ? 'bg-slate-900 text-white hover:bg-slate-800' 
+                                  : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                              }`}
+                            >
+                              <History className="w-3.5 h-3.5" /> Saques ({user.withdrawals?.length || 0})
+                              {expandedUserId === user.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                            </button>
+                            <button 
+                              onClick={() => handleEdit(user)}
+                              className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" /> Editar
+                            </button>
+                          </div>
                         </td>
                       </>
                     )}
                   </tr>
-                ))}
+                  {expandedUserId === user.id && (
+                    <tr className="bg-slate-50/70 border-b border-slate-100">
+                      <td colSpan={6} className="px-8 py-6">
+                        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+                          
+                          {/* Title */}
+                          <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+                            <div className="flex items-center gap-2 text-slate-900">
+                              <History className="w-5 h-5 text-indigo-600 animate-pulse" />
+                              <h4 className="font-black text-sm uppercase tracking-wider">Histórico de Saques: {user.email}</h4>
+                            </div>
+                            <span className="text-xs text-slate-500 font-bold bg-slate-100 px-3 py-1 rounded-full">
+                              {user.withdrawals?.length || 0} saques registrados
+                            </span>
+                          </div>
+
+                          {/* Add New Withdrawal */}
+                          <div className="bg-slate-50/50 border border-slate-100 rounded-xl p-4 space-y-4">
+                            <h5 className="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                              <Plus className="w-4 h-4 text-emerald-500" /> Adicionar Saque com Sucesso
+                            </h5>
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Valor (R$)</label>
+                                <input 
+                                  type="number" 
+                                  step="0.01" 
+                                  placeholder="Ex: 50.00"
+                                  value={newWithdrawalForm.amount}
+                                  onChange={e => setNewWithdrawalForm(prev => ({ ...prev, amount: e.target.value }))}
+                                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Data e Hora (Local)</label>
+                                <input 
+                                  type="datetime-local" 
+                                  value={newWithdrawalForm.date}
+                                  onChange={e => setNewWithdrawalForm(prev => ({ ...prev, date: e.target.value }))}
+                                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500 text-slate-700"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status</label>
+                                <select 
+                                  value={newWithdrawalForm.status}
+                                  onChange={e => setNewWithdrawalForm(prev => ({ ...prev, status: e.target.value as any }))}
+                                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500 text-slate-700"
+                                >
+                                  <option value="Sucesso">Sucesso (Aprovado)</option>
+                                  <option value="Pendente">Pendente (Em análise)</option>
+                                  <option value="Recusado">Recusado (Estornado)</option>
+                                </select>
+                              </div>
+                              <button
+                                onClick={() => handleAddWithdrawal(user.id)}
+                                className="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-black text-xs uppercase tracking-wider transition-colors shadow-md shadow-emerald-500/10 cursor-pointer"
+                              >
+                                Adicionar Saque
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Withdrawals List Table */}
+                          <div className="border border-slate-100 rounded-xl overflow-hidden">
+                            <table className="w-full text-left text-xs border-collapse">
+                              <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase">
+                                <tr>
+                                  <th className="px-4 py-2.5">Data e Hora</th>
+                                  <th className="px-4 py-2.5">Valor</th>
+                                  <th className="px-4 py-2.5">Status</th>
+                                  <th className="px-4 py-2.5 text-right">Ações</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-50 font-medium">
+                                {(user.withdrawals || []).map((w: any) => {
+                                  const formattedDate = new Date(w.date).toLocaleString('pt-BR', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  });
+
+                                  const statusColors = {
+                                    Sucesso: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                                    Pendente: 'bg-amber-50 text-amber-700 border-amber-100',
+                                    Recusado: 'bg-red-50 text-red-700 border-red-100'
+                                  };
+
+                                  return (
+                                    <tr key={w.id} className="hover:bg-slate-50/30">
+                                      {editingWithdrawalId === w.id ? (
+                                        <>
+                                          <td className="px-4 py-2">
+                                            <input 
+                                              type="datetime-local" 
+                                              value={editWithdrawalForm.date}
+                                              onChange={e => setEditWithdrawalForm(prev => ({ ...prev, date: e.target.value }))}
+                                              className="bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                            />
+                                          </td>
+                                          <td className="px-4 py-2">
+                                            <input 
+                                              type="number" 
+                                              step="0.01" 
+                                              value={editWithdrawalForm.amount}
+                                              onChange={e => setEditWithdrawalForm(prev => ({ ...prev, amount: e.target.value }))}
+                                              className="w-20 bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 font-bold"
+                                            />
+                                          </td>
+                                          <td className="px-4 py-2">
+                                            <select 
+                                              value={editWithdrawalForm.status}
+                                              onChange={e => setEditWithdrawalForm(prev => ({ ...prev, status: e.target.value as any }))}
+                                              className="bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                            >
+                                              <option value="Sucesso">Sucesso</option>
+                                              <option value="Pendente">Pendente</option>
+                                              <option value="Recusado">Recusado</option>
+                                            </select>
+                                          </td>
+                                          <td className="px-4 py-2 text-right">
+                                            <div className="flex items-center justify-end gap-1.5">
+                                              <button 
+                                                onClick={() => handleSaveWithdrawal(user.id, w.id)}
+                                                className="p-1 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors"
+                                                title="Salvar"
+                                              >
+                                                <Check className="w-3.5 h-3.5" />
+                                              </button>
+                                              <button 
+                                                onClick={() => setEditingWithdrawalId(null)}
+                                                className="p-1 bg-slate-200 text-slate-600 rounded hover:bg-slate-300 transition-colors"
+                                                title="Cancelar"
+                                              >
+                                                <X className="w-3.5 h-3.5" />
+                                              </button>
+                                            </div>
+                                          </td>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <td className="px-4 py-2.5 font-bold text-slate-500 flex items-center gap-1.5">
+                                            <Calendar className="w-3.5 h-3.5 text-slate-400" /> {formattedDate}
+                                          </td>
+                                          <td className="px-4 py-2.5 font-black text-slate-800">
+                                            R$ {w.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                          </td>
+                                          <td className="px-4 py-2.5">
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-wider ${statusColors[w.status as keyof typeof statusColors] || statusColors.Pendente}`}>
+                                              {w.status}
+                                            </span>
+                                          </td>
+                                          <td className="px-4 py-2.5 text-right">
+                                            <div className="flex items-center justify-end gap-1.5">
+                                              <button 
+                                                onClick={() => handleStartEditWithdrawal(w)}
+                                                className="p-1 text-slate-500 hover:text-slate-700 bg-slate-100 rounded transition-colors"
+                                                title="Editar Saque"
+                                              >
+                                                <Edit2 className="w-3.5 h-3.5" />
+                                              </button>
+                                              <button 
+                                                onClick={() => handleDeleteWithdrawal(user.id, w.id)}
+                                                className="p-1 text-red-500 hover:text-red-700 bg-red-50 rounded transition-colors"
+                                                title="Excluir Saque"
+                                              >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                              </button>
+                                            </div>
+                                          </td>
+                                        </>
+                                      )}
+                                    </tr>
+                                  );
+                                })}
+
+                                {(user.withdrawals || []).length === 0 && (
+                                  <tr>
+                                    <td colSpan={4} className="px-4 py-6 text-center text-slate-400 font-bold">
+                                      Nenhum saque registrado para este usuário.
+                                    </td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              ))}
                 
                 {filteredUsers.length === 0 && !isLoading && (
                   <tr>

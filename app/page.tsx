@@ -610,43 +610,99 @@ const Page = () => {
                 <div className="mt-12 pt-12 border-t border-slate-100">
                   <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6">Últimas Transações</h4>
                   <div className="space-y-4">
-                    {pendingWithdrawals && pendingWithdrawals.map((withdrawal) => (
-                      <div key={withdrawal.id} className="flex flex-col p-4 bg-amber-50 rounded-2xl border border-amber-200 shadow-sm gap-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="p-2 rounded-xl bg-amber-100 text-amber-600">
-                              <Clock className="w-5 h-5" />
+                    {pendingWithdrawals && pendingWithdrawals.map((withdrawal) => {
+                      const isSuccess = withdrawal.status === 'Sucesso';
+                      const isRefused = withdrawal.status === 'Recusado';
+                      
+                      return (
+                        <div key={withdrawal.id} className={`flex flex-col p-4 rounded-2xl border shadow-sm gap-3 ${
+                          isSuccess 
+                            ? 'bg-emerald-50 border-emerald-200' 
+                            : isRefused 
+                              ? 'bg-red-50 border-red-200' 
+                              : 'bg-amber-50 border-amber-200'
+                        }`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className={`p-2 rounded-xl ${
+                                isSuccess 
+                                  ? 'bg-emerald-100 text-emerald-600' 
+                                  : isRefused 
+                                    ? 'bg-red-100 text-red-600' 
+                                    : 'bg-amber-100 text-amber-600'
+                              }`}>
+                                {isSuccess ? <CheckCircle2 className="w-5 h-5" /> : isRefused ? <AlertTriangle className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+                              </div>
+                              <div>
+                                <p className="font-bold text-slate-800 text-sm">
+                                  {isSuccess 
+                                    ? 'Saque Pix Concluído' 
+                                    : isRefused 
+                                      ? 'Saque Pix Recusado' 
+                                      : 'Saque Pix Solicitado'}
+                                </p>
+                                <p className={`text-[10px] font-black uppercase tracking-wider ${
+                                  isSuccess 
+                                    ? 'text-emerald-600' 
+                                    : isRefused 
+                                      ? 'text-red-500' 
+                                      : 'text-amber-600'
+                                }`}>
+                                  {isSuccess 
+                                    ? 'Sucesso - Pago via Pix' 
+                                    : isRefused 
+                                      ? 'Recusado / Estornado' 
+                                      : 'Pendente - Em processamento (24h)'}
+                                </p>
+                                {withdrawal.date && (
+                                  <p className="text-[9px] text-slate-400 font-bold mt-0.5">
+                                    {new Date(withdrawal.date).toLocaleString('pt-BR', {
+                                      day: '2-digit',
+                                      month: '2-digit',
+                                      year: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-bold text-slate-800 text-sm">Saque Pix Solicitado</p>
-                              <p className="text-[10px] text-amber-600 font-black uppercase tracking-wider">{withdrawal.status} - Em processamento (24h)</p>
-                            </div>
+                            <span className={`font-black text-lg ${
+                              isSuccess 
+                                ? 'text-emerald-600' 
+                                : isRefused 
+                                  ? 'text-red-500' 
+                                  : 'text-amber-600'
+                            }`}>
+                              -R$ {withdrawal.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </span>
                           </div>
-                          <span className="text-amber-600 font-black text-lg">-R$ {withdrawal.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                          {!isSuccess && !isRefused && (
+                            appDownloaded ? (
+                              <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3 justify-between">
+                                <p className="text-[11px] text-emerald-700 font-bold leading-relaxed">
+                                  <CheckCircle2 className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
+                                  App verificado! Seu saque está aguardando fila de pagamento.
+                                </p>
+                                <a href="/replio.apk" download="replio.apk" onClick={() => trackAppDownload()} className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-lg font-black text-[10px] tracking-wide transition-all text-center flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 shadow-md shadow-emerald-500/20 cursor-pointer">
+                                  <Download className="w-3.5 h-3.5" /> BAIXAR APP
+                                </a>
+                              </div>
+                            ) : (
+                              <div className="bg-white border border-red-100 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3 justify-between">
+                                <p className="text-[11px] text-red-600 font-bold leading-relaxed">
+                                  <AlertTriangle className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
+                                  Para o saque ser finalizado com sucesso, você precisa baixar o app oficial.
+                                </p>
+                                <a href="/replio.apk" download="replio.apk" onClick={() => trackAppDownload()} className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-lg font-black text-[10px] tracking-wide transition-all text-center flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 shadow-md shadow-emerald-500/20 cursor-pointer">
+                                  <Download className="w-3.5 h-3.5" /> BAIXAR APP
+                                </a>
+                              </div>
+                            )
+                          )}
                         </div>
-                        {appDownloaded ? (
-                          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3 justify-between">
-                            <p className="text-[11px] text-emerald-700 font-bold leading-relaxed">
-                              <CheckCircle2 className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
-                              App verificado! Seu saque está aguardando fila de pagamento.
-                            </p>
-                            <a href="/replio.apk" download="replio.apk" onClick={() => trackAppDownload()} className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-lg font-black text-[10px] tracking-wide transition-all text-center flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 shadow-md shadow-emerald-500/20 cursor-pointer">
-                              <Download className="w-3.5 h-3.5" /> BAIXAR APP
-                            </a>
-                          </div>
-                        ) : (
-                          <div className="bg-white border border-red-100 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3 justify-between">
-                            <p className="text-[11px] text-red-600 font-bold leading-relaxed">
-                              <AlertTriangle className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
-                              Para o saque ser finalizado com sucesso, você precisa baixar o app oficial.
-                            </p>
-                            <a href="/replio.apk" download="replio.apk" onClick={() => trackAppDownload()} className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-lg font-black text-[10px] tracking-wide transition-all text-center flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 shadow-md shadow-emerald-500/20 cursor-pointer">
-                              <Download className="w-3.5 h-3.5" /> BAIXAR APP
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                     {[1, 2, 3].map((i) => (
                       <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                         <div className="flex items-center gap-4">

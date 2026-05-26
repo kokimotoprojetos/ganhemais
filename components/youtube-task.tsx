@@ -20,6 +20,7 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
   const [timeLeft, setTimeLeft] = useState(30); // 30-second target countdown
   const [isFinished, setIsFinished] = useState(false);
   const [isClaimed, setIsClaimed] = useState(false);
+  const [hasPlayerError, setHasPlayerError] = useState(false);
   const playerRef = useRef<any>(null);
   const [displayTitle, setDisplayTitle] = useState(title);
 
@@ -48,6 +49,7 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
     setIsFinished(false);
     setIsPlaying(false);
     setIsClaimed(false);
+    setHasPlayerError(false);
     setIsModalOpen(true);
   };
 
@@ -93,6 +95,11 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
     }
   };
 
+  const onError: YouTubeProps['onError'] = (event) => {
+    console.error("YouTube Player Error:", event.data);
+    setHasPlayerError(true);
+  };
+
   const handleClaimReward = () => {
     onComplete(reward);
     setIsClaimed(true);
@@ -116,7 +123,7 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
     width: '100%',
     playerVars: {
       autoplay: 1, // Autoplay on modal open
-      controls: 0, // No controls to prevent scrubbing/skipping
+      controls: 1, // Controls enabled for better mobile compatibility and unmuting
       disablekb: 1,
       modestbranding: 1,
       rel: 0,
@@ -233,6 +240,7 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
                   opts={opts} 
                   onReady={onReady} 
                   onStateChange={onStateChange}
+                  onError={onError}
                   className="w-full h-full aspect-video"
                   style={{ height: '100%', width: '100%' }}
                 />
@@ -266,18 +274,32 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
                     </button>
                   </div>
 
-                  {/* Anti-cheat status banner */}
-                  <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-4 mb-6">
-                    <div className="flex gap-3">
-                      <ShieldAlert className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-xs font-black text-slate-300">Sistema Anti-Burlar</p>
-                        <p className="text-[10px] text-slate-500 font-semibold leading-relaxed mt-0.5">
-                          O tempo avança apenas com o vídeo em reprodução. Pular partes invalidará a recompensa.
-                        </p>
+                  {/* Anti-cheat or Player Error status banner */}
+                  {hasPlayerError ? (
+                    <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 mb-6">
+                      <div className="flex gap-3">
+                        <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-black text-amber-500">Vídeo Indisponível</p>
+                          <p className="text-[10px] text-slate-400 font-semibold leading-relaxed mt-0.5">
+                            O reprodutor do YouTube falhou ao carregar (pode ser devido a bloqueadores de anúncios/adblockers ou restrições de rede). Você pode pular o vídeo e coletar sua recompensa normalmente!
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-4 mb-6">
+                      <div className="flex gap-3">
+                        <ShieldAlert className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-black text-slate-300">Sistema Anti-Burlar</p>
+                          <p className="text-[10px] text-slate-500 font-semibold leading-relaxed mt-0.5">
+                            O tempo avança apenas com o vídeo em reprodução. Pular partes invalidará a recompensa.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Timer & Progress Circle */}
                   <div className="flex flex-col items-center justify-center py-6 bg-slate-950/30 rounded-3xl border border-slate-800/40">
@@ -347,14 +369,14 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
                     <span className="text-emerald-400 font-black text-2xl tracking-tight">R$ {reward.toFixed(2)}</span>
                   </div>
 
-                  {isFinished ? (
+                  {isFinished || hasPlayerError ? (
                     <motion.button
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={handleClaimReward}
-                      className="w-full py-5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-base shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2 tracking-tight transition-all"
+                      className="w-full py-5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-base shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2 tracking-tight transition-all animate-pulse"
                     >
-                      RESGATAR RECOMPENSA <CheckCircle2 className="w-5 h-5" />
+                      {hasPlayerError ? 'PULAR E RECEBER RECOMPENSA' : 'RESGATAR RECOMPENSA'} <CheckCircle2 className="w-5 h-5" />
                     </motion.button>
                   ) : (
                     <button

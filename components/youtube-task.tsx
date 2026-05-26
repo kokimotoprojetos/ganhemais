@@ -54,7 +54,7 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
   // Countdown timer logic
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (isModalOpen && isPlaying && timeLeft > 0 && !isFinished) {
+    if (isModalOpen && isPlaying && !isFinished) {
       timer = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -70,7 +70,7 @@ export function YouTubeTask({ videoId, reward, title, isCompleted, onComplete }:
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [isModalOpen, isPlaying, timeLeft, isFinished, reward, onComplete]);
+  }, [isModalOpen, isPlaying, isFinished, reward, onComplete]);
 
   const onReady: YouTubeProps['onReady'] = (event) => {
     playerRef.current = event.target;

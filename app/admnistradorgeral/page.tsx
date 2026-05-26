@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Check, Edit2, LogOut, RefreshCw, Save, ShieldAlert, Smartphone, Users, X } from 'lucide-react';
+import { Check, Edit2, LogOut, RefreshCw, Save, ShieldAlert, Smartphone, Users, X, Star, Crown } from 'lucide-react';
 
 interface UserData {
   id: string;
@@ -159,12 +159,22 @@ export default function AdminPage() {
             </div>
             <div>
               <h1 className="text-2xl font-black text-slate-900 tracking-tight">Gerenciamento de Usuários</h1>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-sm text-slate-500 font-medium">{users.length} usuários cadastrados</span>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <span className="text-sm text-slate-500 font-medium">{users.length} cadastrados</span>
                 <span className="text-slate-300">•</span>
                 <span className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">
                   <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                  {users.filter(u => u.is_online).length} online agora
+                  {users.filter(u => u.is_online).length} online
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="inline-flex items-center gap-1.5 text-xs font-black text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full">
+                  <Crown className="w-3.5 h-3.5 fill-indigo-500 text-indigo-500" />
+                  {users.filter(u => u.plan !== 'Basic').length} VIPs
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="inline-flex items-center gap-1.5 text-xs font-black text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full">
+                  <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                  {users.filter(u => u.balance > 0).length} com Saldo
                 </span>
               </div>
             </div>
@@ -200,12 +210,36 @@ export default function AdminPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
+                  <tr 
+                    key={user.id} 
+                    className={`transition-colors duration-200 ${
+                      user.plan === 'Gold' 
+                        ? 'bg-amber-500/[0.04] border-l-4 border-l-amber-500 hover:bg-amber-500/[0.08]' 
+                        : user.plan === 'Silver' 
+                          ? 'bg-indigo-500/[0.04] border-l-4 border-l-indigo-500 hover:bg-indigo-500/[0.08]' 
+                          : 'hover:bg-slate-50/50'
+                    }`}
+                  >
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <div className="font-bold text-slate-900">{user.email}</div>
+                        {user.plan === 'Gold' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-500 text-slate-950 text-[10px] font-black shadow-sm">
+                            <Crown className="w-3 h-3 fill-slate-950 text-slate-950" /> VIP GOLD
+                          </span>
+                        )}
+                        {user.plan === 'Silver' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-indigo-500 text-white text-[10px] font-black shadow-sm">
+                            <Crown className="w-3 h-3 fill-white text-white" /> VIP SILVER
+                          </span>
+                        )}
+                        {user.balance > 0 && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black">
+                            <Star className="w-3 h-3 fill-emerald-500 text-emerald-500" /> ATIVO
+                          </span>
+                        )}
                         {user.is_online ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-black">
                             <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                             ONLINE
                           </span>

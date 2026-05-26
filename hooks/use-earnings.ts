@@ -416,6 +416,26 @@ export function useEarnings() {
     });
   };
 
+  const purchasePlanWithBalance = async (plan: 'Silver' | 'Gold', price: number) => {
+    if (!userId) return false;
+    if (stats.balance < price) return false;
+
+    const newBalance = Number((stats.balance - price).toFixed(2));
+
+    setStats(prev => ({
+      ...prev,
+      balance: newBalance,
+      plan,
+    }));
+
+    await updateProfileFields({
+      balance: newBalance,
+      plan,
+    });
+
+    return true;
+  };
+
   const deposit = async (amount: number) => {
     if (!userId) return false;
     const newBalance = stats.balance + amount;
@@ -489,6 +509,7 @@ export function useEarnings() {
     inviteUser,
     withdraw,
     upgradePlan,
+    purchasePlanWithBalance,
     deposit,
     isLoading,
     appDownloaded,

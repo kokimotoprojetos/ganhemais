@@ -42,7 +42,7 @@ type Tab = 'painel' | 'carteira' | 'planos' | 'convites' | 'equipe';
 const Page = () => {
   // Referral handling moved down
 
-  const { stats, team, pendingWithdrawals, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, upgradePlan, deposit, isAuthenticated, appDownloaded, trackAppDownload, logout } = useEarnings();
+  const { stats, team, pendingWithdrawals, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, upgradePlan, purchasePlanWithBalance, deposit, isAuthenticated, appDownloaded, trackAppDownload, logout } = useEarnings();
   const [activeTab, setActiveTab] = useState<Tab>('painel');
   const [showNotification, setShowNotification] = useState<string | null>(null);
   const [pendingRef, setPendingRef] = useState<string | null>(null);
@@ -160,9 +160,10 @@ const Page = () => {
     if (stats.balance >= price) {
       const confirmPurchase = window.confirm(`Você possui R$ ${stats.balance.toFixed(2)} de saldo. Deseja assinar o plano ${plan} usando R$ ${price.toFixed(2)} do seu saldo de carteira?`);
       if (confirmPurchase) {
-        await withdraw(price);
-        await upgradePlan(plan);
-        triggerNotification(`Assinatura do plano ${plan} ativada usando seu saldo!`);
+        const success = await purchasePlanWithBalance(plan, price);
+        if (success) {
+          triggerNotification(`Assinatura do plano ${plan} ativada usando seu saldo!`);
+        }
       } else {
         handleOpenDeposit(price, plan);
       }

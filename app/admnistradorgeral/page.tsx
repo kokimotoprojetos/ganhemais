@@ -15,6 +15,7 @@ interface UserData {
   plan: string;
   is_online: boolean;
   last_active_at: number;
+  invites: number;
 }
 
 const ADMIN_TOKEN = 'admin_replio_2026_secreto';
@@ -209,6 +210,7 @@ export default function AdminPage() {
                   <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider">Usuário</th>
                   <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider">Saldo (R$)</th>
                   <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider">Bônus Convite (R$)</th>
+                  <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider">Convidados</th>
                   <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider">App Baixado</th>
                   <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider text-right">Ações</th>
                 </tr>
@@ -295,6 +297,9 @@ export default function AdminPage() {
                             className="w-24 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                           />
                         </td>
+                        <td className="px-6 py-4 font-bold text-slate-500">
+                          {user.invites} {user.invites === 1 ? 'amigo' : 'amigos'}
+                        </td>
                         <td className="px-6 py-4">
                           <button 
                             onClick={() => setEditForm(prev => ({ ...prev, app_downloaded: !prev.app_downloaded }))}
@@ -332,6 +337,9 @@ export default function AdminPage() {
                         </td>
                         <td className="px-6 py-4 font-bold text-slate-700">
                           R$ {user.invite_bonus.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-6 py-4 font-bold text-slate-700">
+                          {user.invites} {user.invites === 1 ? 'amigo' : 'amigos'}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-col items-start gap-1">

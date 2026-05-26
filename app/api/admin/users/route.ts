@@ -37,6 +37,8 @@ export async function GET(req: Request) {
         : 0;
       const isOnline = lastActive > 0 && (Date.now() - lastActive < 5 * 60 * 1000); // 5 min
 
+      const invites = profiles.filter(p => p.invited_by === profile.id).length;
+
       return {
         id: profile.id,
         email: profile.email,
@@ -47,7 +49,8 @@ export async function GET(req: Request) {
         app_download_clicks: Number(publicMetadata.app_download_clicks || 0),
         plan: profile.plan,
         last_active_at: lastActive,
-        is_online: isOnline
+        is_online: isOnline,
+        invites
       };
     });
 

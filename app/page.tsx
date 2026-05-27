@@ -754,7 +754,6 @@ const Page = () => {
                   <ul className="space-y-4 mb-8 md:mb-12 flex-1 text-sm font-medium text-slate-600">
                     <li className="flex items-center gap-3 font-bold"><CheckCircle2 className="w-5 h-5 text-indigo-500" /> 15 Tarefas por dia</li>
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-500" /> Check-in de R$ 5,00</li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-500" /> Saque priorizado</li>
                   </ul>
                   {stats.plan === 'Silver' ? (
                     <button disabled className="w-full py-4 bg-slate-100 text-slate-400 rounded-2xl font-black text-sm">ATUAL</button>

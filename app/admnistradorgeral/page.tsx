@@ -247,6 +247,12 @@ export default function AdminPage() {
           return;
         }
         finalBalance = Number((finalBalance - 97.00).toFixed(2));
+      } else if (editForm.plan === 'Diamond') {
+        if (finalBalance < 149.90) {
+          alert('Saldo insuficiente! Para ativar o plano Diamond, o usuário precisa ter no mínimo R$ 149,90 de saldo em conta.');
+          return;
+        }
+        finalBalance = Number((finalBalance - 149.90).toFixed(2));
       }
     }
 
@@ -415,16 +421,23 @@ export default function AdminPage() {
                   <Fragment key={user.id}>
                     <tr 
                       className={`transition-colors duration-200 ${
-                        user.plan === 'Gold' 
-                          ? 'bg-amber-500/[0.04] border-l-4 border-l-amber-500 hover:bg-amber-500/[0.08]' 
-                          : user.plan === 'Silver' 
-                            ? 'bg-indigo-500/[0.04] border-l-4 border-l-indigo-500 hover:bg-indigo-500/[0.08]' 
-                            : 'hover:bg-slate-50/50'
+                        user.plan === 'Diamond'
+                          ? 'bg-cyan-500/[0.04] border-l-4 border-l-cyan-500 hover:bg-cyan-500/[0.08]'
+                          : user.plan === 'Gold' 
+                            ? 'bg-amber-500/[0.04] border-l-4 border-l-amber-500 hover:bg-amber-500/[0.08]' 
+                            : user.plan === 'Silver' 
+                              ? 'bg-indigo-500/[0.04] border-l-4 border-l-indigo-500 hover:bg-indigo-500/[0.08]' 
+                              : 'hover:bg-slate-50/50'
                       }`}
                     >
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap items-center gap-2">
                         <div className="font-bold text-slate-900">{user.email}</div>
+                        {user.plan === 'Diamond' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-cyan-500 text-slate-950 text-[10px] font-black shadow-sm tracking-wide">
+                            <Crown className="w-3 h-3 fill-slate-950 text-slate-950 animate-bounce" /> VIP DIAMANTE
+                          </span>
+                        )}
                         {user.plan === 'Gold' && (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-500 text-slate-950 text-[10px] font-black shadow-sm">
                             <Crown className="w-3 h-3 fill-slate-950 text-slate-950" /> VIP GOLD
@@ -463,6 +476,7 @@ export default function AdminPage() {
                               <option value="Basic">Básico (Grátis)</option>
                               <option value="Silver">Silver (R$ 29,90)</option>
                               <option value="Gold">Gold (R$ 97,00)</option>
+                              <option value="Diamond">Diamante (R$ 149,90)</option>
                             </select>
                           </div>
                         ) : (

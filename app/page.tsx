@@ -24,7 +24,8 @@ import {
   Users,
   Clock,
   Download,
-  AlertTriangle
+  AlertTriangle,
+  Crown
 } from 'lucide-react';
 
 
@@ -127,13 +128,13 @@ const Page = () => {
   // Deposit / subscription modal state
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [depositPredefinedAmount, setDepositPredefinedAmount] = useState<number | null>(null);
-  const [depositPredefinedPlan, setDepositPredefinedPlan] = useState<'Silver' | 'Gold' | null>(null);
+  const [depositPredefinedPlan, setDepositPredefinedPlan] = useState<'Silver' | 'Gold' | 'Diamond' | null>(null);
 
   // Withdraw modal state
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
 
   // Custom subscription modal state
-  const [confirmSubModal, setConfirmSubModal] = useState<{ isOpen: boolean; plan: 'Silver' | 'Gold' | null; price: number }>({
+  const [confirmSubModal, setConfirmSubModal] = useState<{ isOpen: boolean; plan: 'Silver' | 'Gold' | 'Diamond' | null; price: number }>({
     isOpen: false,
     plan: null,
     price: 0
@@ -147,13 +148,13 @@ const Page = () => {
     return success;
   };
 
-  const handleOpenDeposit = (amount: number | null = null, plan: 'Silver' | 'Gold' | null = null) => {
+  const handleOpenDeposit = (amount: number | null = null, plan: 'Silver' | 'Gold' | 'Diamond' | null = null) => {
     setDepositPredefinedAmount(amount);
     setDepositPredefinedPlan(plan);
     setIsDepositModalOpen(true);
   };
 
-  const handleDepositSuccess = async (amount: number, plan?: 'Silver' | 'Gold') => {
+  const handleDepositSuccess = async (amount: number, plan?: 'Silver' | 'Gold' | 'Diamond') => {
     if (plan) {
       await upgradePlan(plan);
       triggerNotification(`Parabéns! Plano ${plan} assinado com sucesso via Pix!`);
@@ -163,7 +164,7 @@ const Page = () => {
     }
   };
 
-  const handleSubscribePlan = async (plan: 'Silver' | 'Gold', price: number) => {
+  const handleSubscribePlan = async (plan: 'Silver' | 'Gold' | 'Diamond', price: number) => {
     if (stats.balance >= price) {
       setConfirmSubModal({ isOpen: true, plan, price });
     } else {
@@ -470,7 +471,7 @@ const Page = () => {
                 const maxTasks = stats.plan === 'Basic' ? 5 : stats.plan === 'Silver' ? 15 : Infinity;
                 const remainingTasks = maxTasks - completedToday;
 
-                if (stats.plan !== 'Gold' && remainingTasks <= 0) {
+                if (stats.plan !== 'Gold' && stats.plan !== 'Diamond' && remainingTasks <= 0) {
                   return (
                     <div className="bg-amber-500/10 border-2 border-amber-500/20 rounded-[2.5rem] p-6 text-amber-800 flex flex-col sm:flex-row items-center justify-between shadow-sm gap-4 animate-bounce">
                       <div className="flex gap-4 items-center">
@@ -528,7 +529,7 @@ const Page = () => {
                           const completedToday = stats.lastTaskDate === today ? (stats.completedTodayCount || 0) : 0;
                           const maxTasks = stats.plan === 'Basic' ? 5 : stats.plan === 'Silver' ? 15 : Infinity;
                           const remainingTasks = maxTasks - completedToday;
-                          return stats.plan === 'Gold' ? 'Ilimitado' : `${Math.max(0, remainingTasks)} tarefas restantes hoje`;
+                          return (stats.plan === 'Gold' || stats.plan === 'Diamond') ? 'Ilimitado' : `${Math.max(0, remainingTasks)} tarefas restantes hoje`;
                         })()}
                       </div>
                     </div>
@@ -678,27 +679,15 @@ const Page = () => {
                             </span>
                           </div>
                           {!isSuccess && !isRefused && (
-                            appDownloaded ? (
-                              <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3 justify-between">
-                                <p className="text-[11px] text-emerald-700 font-bold leading-relaxed">
-                                  <CheckCircle2 className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
-                                  App verificado! Seu saque está aguardando fila de pagamento.
-                                </p>
-                                <a href="/replio.apk" download="replio.apk" onClick={() => trackAppDownload()} className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-lg font-black text-[10px] tracking-wide transition-all text-center flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 shadow-md shadow-emerald-500/20 cursor-pointer">
-                                  <Download className="w-3.5 h-3.5" /> BAIXAR APP
-                                </a>
-                              </div>
-                            ) : (
-                              <div className="bg-white border border-red-100 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3 justify-between">
-                                <p className="text-[11px] text-red-600 font-bold leading-relaxed">
-                                  <AlertTriangle className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
-                                  Para o saque ser finalizado com sucesso, você precisa baixar o app oficial.
-                                </p>
-                                <a href="/replio.apk" download="replio.apk" onClick={() => trackAppDownload()} className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-lg font-black text-[10px] tracking-wide transition-all text-center flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 shadow-md shadow-emerald-500/20 cursor-pointer">
-                                  <Download className="w-3.5 h-3.5" /> BAIXAR APP
-                                </a>
-                              </div>
-                            )
+                            <div className="bg-indigo-50/60 border border-indigo-100 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3 justify-between">
+                              <p className="text-[11px] text-indigo-700 font-bold leading-relaxed">
+                                <AlertTriangle className="w-3.5 h-3.5 inline mr-1 -mt-0.5 animate-pulse" />
+                                O aplicativo oficial está passando por uma grande atualização e estará de volta em breve com novas funções de saque Pix automático!
+                              </p>
+                              <span className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-wider shrink-0">
+                                EM ATUALIZAÇÃO
+                              </span>
+                            </div>
                           )}
                         </div>
                       );
@@ -736,7 +725,7 @@ const Page = () => {
                 <p className="text-sm md:text-base text-slate-500 font-medium px-4">Desbloqueie tarefas ilimitadas e multiplique seus ganhos diários agora mesmo.</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Basic Plan */}
                 <div className={`bg-white border-2 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 flex flex-col relative transition-all ${stats.plan === 'Basic' ? 'border-emerald-500 shadow-2xl' : 'border-slate-100 opacity-80'}`}>
                   {stats.plan === 'Basic' && (
@@ -833,6 +822,50 @@ const Page = () => {
                       className="w-full py-4 bg-white text-slate-900 rounded-2xl font-black text-sm shadow-xl shadow-white/5 hover:bg-slate-100 transition-all cursor-pointer"
                     >
                       TORNE-SE ELITE
+                    </button>
+                  )}
+                </div>
+
+                {/* Diamond Plan */}
+                <div className={`bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 flex flex-col text-white shadow-2xl relative border-2 ${stats.plan === 'Diamond' ? 'border-cyan-400 shadow-cyan-950/20' : 'border-indigo-950 hover:border-indigo-900'}`}>
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-cyan-400 to-indigo-400 text-slate-950 px-6 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">EXCLUSIVO</div>
+                  <h4 className="text-cyan-400 font-black text-[10px] uppercase tracking-widest mb-2">Poder Infinito</h4>
+                  <p className="text-2xl md:text-3xl font-black mb-1 italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 flex items-center gap-2">Diamante <Crown className="w-6 h-6 text-cyan-400 fill-cyan-400 animate-pulse" /></p>
+                  <div className="flex items-baseline gap-1 mb-6 md:mb-8">
+                    <span className="text-xl font-bold opacity-60">R$</span>
+                    <span className="text-4xl font-black text-cyan-300">149,90</span>
+                    <span className="text-slate-500 text-xs font-bold leading-normal">/anual</span>
+                  </div>
+                  <ul className="space-y-4 mb-8 md:mb-12 flex-1 text-sm font-medium text-slate-300">
+                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-cyan-400" /> Saque IMEDIATO sem taxas</li>
+                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-cyan-400" /> Saldo indicação imediato</li>
+                    <li className="flex items-center gap-3 font-black text-cyan-400"><CheckCircle2 className="w-5 h-5" /> Bônus de R$ 2,00 por amigo</li>
+                    <li className="flex items-center gap-3 opacity-60"><CheckCircle2 className="w-5 h-5" /> Suporte VIP Priority 24h</li>
+                  </ul>
+                  {stats.plan === 'Diamond' ? (
+                    <button disabled className="w-full py-4 bg-slate-800 text-slate-500 rounded-2xl font-black text-sm">ATUAL</button>
+                  ) : stats.balance >= 149.90 ? (
+                    <div className="space-y-3">
+                      <button 
+                        onClick={() => handleSubscribePlan('Diamond', 149.90)}
+                        className="w-full py-4 bg-gradient-to-r from-cyan-500 to-indigo-500 text-slate-950 rounded-2xl font-black text-sm shadow-xl shadow-cyan-500/10 hover:brightness-110 transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
+                      >
+                        <span>ASSINAR COM SALDO</span>
+                        <span className="text-[10px] opacity-80 font-normal">Saldo disponível</span>
+                      </button>
+                      <button 
+                        onClick={() => handleOpenDeposit(149.90, 'Diamond')}
+                        className="w-full py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs hover:bg-slate-700 transition-all cursor-pointer"
+                      >
+                        Pagar com Pix
+                      </button>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => handleSubscribePlan('Diamond', 149.90)}
+                      className="w-full py-4 bg-gradient-to-r from-cyan-500 to-indigo-500 text-slate-950 rounded-2xl font-black text-sm shadow-xl shadow-cyan-500/10 hover:brightness-110 transition-all cursor-pointer"
+                    >
+                      ADQUIRIR DIAMANTE
                     </button>
                   )}
                 </div>

@@ -335,26 +335,24 @@ export function WithdrawModal({ isOpen, onClose, balance, onSuccess, trackAppDow
                   O valor de **R$ {netAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}** foi solicitado e está <span className="text-amber-600 font-bold">Pendente</span>. O processamento ocorrerá em até **24 horas**.
                 </p>
                 
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-4 text-left">
+                <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mt-4 text-left">
                   <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="w-5 h-5 text-red-600" />
-                    <span className="text-red-700 font-black text-sm uppercase tracking-wide">Ação Necessária</span>
+                    <AlertTriangle className="w-5 h-5 text-indigo-600 animate-pulse" />
+                    <span className="text-indigo-700 font-black text-sm uppercase tracking-wide">Atualização do App</span>
                   </div>
-                  <p className="text-red-600 text-xs font-semibold leading-relaxed">
-                    Para que o seu saque seja concluído com sucesso e liberado em sua conta, é obrigatório baixar e instalar nosso aplicativo oficial.
+                  <p className="text-indigo-600 text-xs font-semibold leading-relaxed">
+                    Nosso aplicativo oficial está passando por uma grande atualização e estará de volta em breve com saques Pix ainda mais rápidos e novas tarefas automáticas!
                   </p>
                 </div>
               </div>
 
               <div className="w-full space-y-3">
-                <a
-                  href="/replio.apk"
-                  download="replio.apk"
-                  onClick={() => trackAppDownload()}
-                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-4.5 rounded-2xl font-black text-sm tracking-wide shadow-xl shadow-emerald-500/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+                <button
+                  disabled
+                  className="w-full bg-indigo-50 text-indigo-600 border border-indigo-100 py-4 rounded-2xl font-black text-sm tracking-wide flex items-center justify-center gap-2 cursor-not-allowed opacity-90"
                 >
-                  <Download className="w-5 h-5" /> BAIXAR APLICATIVO (replio.apk)
-                </a>
+                  APLICATIVO EM ATUALIZAÇÃO
+                </button>
                 <button
                   onClick={onClose}
                   className="w-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800 py-3.5 rounded-xl font-bold text-xs tracking-wide transition-all"

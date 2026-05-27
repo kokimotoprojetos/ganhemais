@@ -11,7 +11,7 @@ export interface UserStats {
   lastCheckIn: string | null;
   tasksCompleted: number;
   invites: number;
-  plan: 'Basic' | 'Silver' | 'Gold';
+  plan: 'Basic' | 'Silver' | 'Gold' | 'Diamond';
   completedTasks: string[];
   completedTodayCount?: number;
   lastTaskDate?: string | null;
@@ -21,7 +21,7 @@ export interface UserStats {
 
 export interface TeamMember {
   email: string;
-  plan: 'Basic' | 'Silver' | 'Gold';
+  plan: 'Basic' | 'Silver' | 'Gold' | 'Diamond';
   balance: number;
   created_at?: string;
 }
@@ -57,7 +57,7 @@ export function useEarnings() {
 
   const userId = user?.id || null;
   const isLoading = !isLoaded || isSupabaseLoading;
-  const inviteBonus = user?.publicMetadata?.invite_bonus !== undefined ? Number(user.publicMetadata.invite_bonus) : 0.50;
+  const inviteBonus = stats.plan === 'Diamond' ? 2.00 : (user?.publicMetadata?.invite_bonus !== undefined ? Number(user.publicMetadata.invite_bonus) : 0.50);
   const clerkAppDownloaded = user?.publicMetadata?.app_downloaded === true;
   const [appDownloaded, setAppDownloaded] = useState(false);
 
@@ -142,7 +142,7 @@ export function useEarnings() {
           if (!teamError && teamData) {
             setTeam(teamData.map((m: any) => ({
               email: m.email || '',
-              plan: (m.plan as 'Basic' | 'Silver' | 'Gold') || 'Basic',
+              plan: (m.plan as 'Basic' | 'Silver' | 'Gold' | 'Diamond') || 'Basic',
               balance: Number(m.balance || 0),
               created_at: m.created_at || ''
             })));
@@ -154,7 +154,7 @@ export function useEarnings() {
             lastCheckIn: profile.last_check_in || null,
             tasksCompleted: profile.completed_tasks ? profile.completed_tasks.length : 0,
             invites: inviteCount,
-            plan: (profile.plan as 'Basic' | 'Silver' | 'Gold') || 'Basic',
+            plan: (profile.plan as 'Basic' | 'Silver' | 'Gold' | 'Diamond') || 'Basic',
             completedTasks: profile.completed_tasks || [],
             completedTodayCount: profile.completed_today_count ?? 0,
             lastTaskDate: profile.last_task_date || null,
@@ -429,7 +429,7 @@ export function useEarnings() {
     return true;
   };
 
-  const upgradePlan = async (plan: 'Silver' | 'Gold') => {
+  const upgradePlan = async (plan: 'Silver' | 'Gold' | 'Diamond') => {
     if (!userId) return;
 
     setStats(prev => ({
@@ -442,7 +442,7 @@ export function useEarnings() {
     });
   };
 
-  const purchasePlanWithBalance = async (plan: 'Silver' | 'Gold', price: number) => {
+  const purchasePlanWithBalance = async (plan: 'Silver' | 'Gold' | 'Diamond', price: number) => {
     if (!userId) return false;
     if (stats.balance < price) return false;
 

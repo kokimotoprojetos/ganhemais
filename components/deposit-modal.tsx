@@ -22,9 +22,9 @@ import {
 interface DepositModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (amount: number, plan?: 'Silver' | 'Gold') => void;
+  onSuccess: (amount: number, plan?: 'Silver' | 'Gold' | 'Diamond') => void;
   predefinedAmount: number | null;
-  predefinedPlan: 'Silver' | 'Gold' | null;
+  predefinedPlan: 'Silver' | 'Gold' | 'Diamond' | null;
 }
 
 function isValidCpf(cpf: string): boolean {

@@ -176,7 +176,9 @@ export default function AdminPage() {
     }
   };
 
-  const filteredUsers = users.filter(user => 
+  const paidUsers = users.filter(user => user.plan !== 'Basic');
+
+  const filteredUsers = paidUsers.filter(user => 
     user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
@@ -343,26 +345,31 @@ export default function AdminPage() {
             <div>
               <h1 className="text-2xl font-black text-slate-900 tracking-tight">Gerenciamento de Usuários</h1>
               <div className="flex flex-wrap items-center gap-2 mt-1">
-                <span className="text-sm text-slate-500 font-medium">{users.length} cadastrados</span>
+                <span className="text-sm text-slate-500 font-medium">{paidUsers.length} VIPs ativos</span>
                 <span className="text-slate-300">•</span>
                 <span className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">
                   <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                  {users.filter(u => u.is_online).length} online
+                  {paidUsers.filter(u => u.is_online).length} online
                 </span>
                 <span className="text-slate-300">•</span>
                 <span className="inline-flex items-center gap-1.5 text-xs font-black text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full">
                   <Crown className="w-3.5 h-3.5 fill-indigo-500 text-indigo-500" />
-                  {users.filter(u => u.plan !== 'Basic').length} VIPs
+                  {paidUsers.filter(u => u.plan === 'Silver').length} Silver
                 </span>
                 <span className="text-slate-300">•</span>
                 <span className="inline-flex items-center gap-1.5 text-xs font-black text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full">
-                  <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                  {users.filter(u => u.balance > 0).length} com Saldo
+                  <Crown className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                  {paidUsers.filter(u => u.plan === 'Gold').length} Elite Gold
                 </span>
                 <span className="text-slate-300">•</span>
-                <span className="inline-flex items-center gap-1.5 text-xs font-black text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">
-                  <Smartphone className="w-3.5 h-3.5 text-blue-600" />
-                  {users.filter(u => u.app_downloaded).length} com App
+                <span className="inline-flex items-center gap-1.5 text-xs font-black text-cyan-600 bg-cyan-50 px-2.5 py-0.5 rounded-full animate-pulse">
+                  <Crown className="w-3.5 h-3.5 fill-cyan-500 text-cyan-500" />
+                  {paidUsers.filter(u => u.plan === 'Diamond').length} Diamante
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                  <Star className="w-3.5 h-3.5 fill-emerald-500 text-emerald-500" />
+                  {paidUsers.filter(u => u.balance > 0).length} com Saldo
                 </span>
               </div>
             </div>

@@ -796,7 +796,8 @@ const Page = () => {
                   <ul className="space-y-4 mb-8 md:mb-12 flex-1 text-sm font-medium text-slate-300">
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-400" /> Tarefas ILIMITADAS</li>
                     <li className="flex items-center gap-3 font-black text-emerald-400"><CheckCircle2 className="w-5 h-5" /> Bônus fixo de 20%</li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-400" /> Suporte 24h VIP</li>
+                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-emerald-400" /> Saque IMEDIATO sem taxas</li>
+                    <li className="flex items-center gap-3 opacity-60"><CheckCircle2 className="w-5 h-5" /> Suporte 24h VIP</li>
                   </ul>
                   {stats.plan === 'Gold' ? (
                     <button disabled className="w-full py-4 bg-slate-800 text-slate-500 rounded-2xl font-black text-sm">ATUAL</button>

@@ -43,6 +43,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showOnlyVips, setShowOnlyVips] = useState(false);
 
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
   const [newWithdrawalForm, setNewWithdrawalForm] = useState<{ amount: string; date: string; status: 'Sucesso' | 'Pendente' | 'Recusado' }>({
@@ -178,9 +179,13 @@ export default function AdminPage() {
 
   const paidUsers = users.filter(user => user.plan !== 'Basic');
 
-  const filteredUsers = paidUsers.filter(user => 
-    user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    if (showOnlyVips) {
+      return user.plan !== 'Basic' && matchesSearch;
+    }
+    return matchesSearch;
+  });
   
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<{ balance: string; invite_bonus: string; app_downloaded: boolean; plan: string }>({
@@ -345,11 +350,11 @@ export default function AdminPage() {
             <div>
               <h1 className="text-2xl font-black text-slate-900 tracking-tight">Gerenciamento de Usuários</h1>
               <div className="flex flex-wrap items-center gap-2 mt-1">
-                <span className="text-sm text-slate-500 font-medium">{paidUsers.length} VIPs ativos</span>
+                <span className="text-sm text-slate-500 font-medium">{users.length} cadastrados ({paidUsers.length} VIPs)</span>
                 <span className="text-slate-300">•</span>
                 <span className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">
                   <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                  {paidUsers.filter(u => u.is_online).length} online
+                  {users.filter(u => u.is_online).length} online
                 </span>
                 <span className="text-slate-300">•</span>
                 <span className="inline-flex items-center gap-1.5 text-xs font-black text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full">
@@ -391,22 +396,34 @@ export default function AdminPage() {
         </div>
 
         {/* Search Bar */}
-        <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 flex items-center gap-3">
+        <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 flex flex-col md:flex-row items-center gap-3">
           <input 
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Pesquisar por e-mail do usuário (ex: usuario@gmail.com)..."
-            className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-semibold outline-none focus:border-slate-900 focus:bg-white transition-all shadow-sm text-slate-800"
+            className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-semibold outline-none focus-visible:ring-1 focus-visible:ring-slate-900 focus:bg-white transition-all shadow-sm text-slate-800 w-full"
           />
-          {searchQuery && (
-            <button 
-              onClick={() => setSearchQuery('')}
-              className="bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold px-4 py-3 rounded-xl text-xs transition-colors shrink-0"
+          <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
+            <button
+              onClick={() => setShowOnlyVips(!showOnlyVips)}
+              className={`px-5 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-sm cursor-pointer whitespace-nowrap flex items-center gap-1.5 w-full md:w-auto justify-center ${
+                showOnlyVips
+                  ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-600/10'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
             >
-              Limpar Filtro
+              <Crown className="w-4 h-4" /> {showOnlyVips ? 'Apenas VIPs Ativos' : 'Todos os Usuários'}
             </button>
-          )}
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold px-5 py-3.5 rounded-2xl text-xs uppercase tracking-wider transition-colors shrink-0 flex items-center justify-center w-full md:w-auto"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Users Table */}

@@ -20,14 +20,45 @@ export async function GET(req: Request) {
     
     const adminSupabase = createClient(supabaseUrl, supabaseKey);
 
-    const { data: profiles, error } = await adminSupabase.from('profiles').select('*');
-    if (error) throw error;
+    let profiles: any[] = [];
+    let page = 0;
+    const pageSize = 1000;
+    let keepFetching = true;
+
+    while (keepFetching) {
+      const { data: chunk, error } = await adminSupabase
+        .from('profiles')
+        .select('*')
+        .range(page * pageSize, (page + 1) * pageSize - 1);
+      
+      if (error) throw error;
+      profiles = [...profiles, ...chunk];
+      
+      if (chunk.length < pageSize) {
+        keepFetching = false;
+      } else {
+        page++;
+      }
+    }
 
     const client = await clerkClient();
-    const clerkUsers = await client.users.getUserList({ limit: 500 });
+    let clerkUsersData: any[] = [];
+    let limit = 500;
+    let offset = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      const response = await client.users.getUserList({ limit, offset });
+      clerkUsersData = [...clerkUsersData, ...response.data];
+      if (response.data.length < limit) {
+        hasMore = false;
+      } else {
+        offset += limit;
+      }
+    }
     
     const merged = profiles.map(profile => {
-      const clerkUser = clerkUsers.data.find(u => u.id === profile.id);
+      const clerkUser = clerkUsersData.find(u => u.id === profile.id);
       const publicMetadata = clerkUser?.publicMetadata || {};
       const unsafeMetadata = clerkUser?.unsafeMetadata || {};
       

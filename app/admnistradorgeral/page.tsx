@@ -46,6 +46,7 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showOnlyVips, setShowOnlyVips] = useState(false);
+  const [activeTab, setActiveTab] = useState<'usuarios' | 'saques'>('usuarios');
 
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
   const [newWithdrawalForm, setNewWithdrawalForm] = useState<{ amount: string; date: string; status: 'Sucesso' | 'Pendente' | 'Recusado' }>({
@@ -179,6 +180,43 @@ export default function AdminPage() {
     }
   };
 
+  const handleStatusUpdate = async (userId: string, withdrawalId: string, newStatus: 'Sucesso' | 'Recusado') => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    const updated = (user.withdrawals || []).map((w: any) => {
+      if (w.id === withdrawalId) {
+        return { ...w, status: newStatus };
+      }
+      return w;
+    });
+
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${ADMIN_TOKEN}`
+        },
+        body: JSON.stringify({
+          id: userId,
+          withdrawals: updated
+        })
+      });
+      if (!res.ok) throw new Error('Falha ao atualizar status do saque');
+      
+      // Update local state directly
+      setUsers(prev => prev.map(u => {
+        if (u.id === userId) {
+          return { ...u, withdrawals: updated };
+        }
+        return u;
+      }));
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   const paidUsers = users.filter(user => user.plan !== 'Basic');
 
   const filteredUsers = users.filter(user => {
@@ -188,6 +226,17 @@ export default function AdminPage() {
     }
     return matchesSearch;
   });
+
+  const pendingWithdrawalList = users.flatMap(user => 
+    (user.withdrawals || [])
+      .filter((w: any) => w.status === 'Pendente')
+      .map((w: any) => ({
+        ...w,
+        userId: user.id,
+        userEmail: user.email,
+        userPlan: user.plan
+      }))
+  ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<{ balance: string; deposit_balance: string; bonus_balance: string; invite_bonus: string; app_downloaded: boolean; plan: string }>({
@@ -407,7 +456,41 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Search Bar */}
+        {/* Navigation Tabs */}
+        <div className="flex gap-2 border-b border-slate-200 pb-px">
+          <button
+            onClick={() => setActiveTab('usuarios')}
+            className={`px-6 py-3 font-bold text-sm transition-all border-b-2 rounded-t-xl cursor-pointer ${
+              activeTab === 'usuarios'
+                ? 'border-slate-900 text-slate-900 bg-white shadow-sm'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              <span>Usuários ({users.length})</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('saques')}
+            className={`px-6 py-3 font-bold text-sm transition-all border-b-2 rounded-t-xl cursor-pointer relative ${
+              activeTab === 'saques'
+                ? 'border-slate-900 text-slate-900 bg-white shadow-sm'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <History className="w-4 h-4" />
+              <span>Solicitações de Saque</span>
+              {users.filter(u => (u.withdrawals || []).some((w: any) => w.status === 'Pendente')).length > 0 && (
+                <span className="bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center animate-pulse">
+                  {users.reduce((acc, u) => acc + (u.withdrawals || []).filter((w: any) => w.status === 'Pendente').length, 0)}
+                </span>
+              )}
+            </div>
+          </button>
+        </div>
+        {activeTab === 'usuarios' && (<>
         <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 flex flex-col md:flex-row items-center gap-3">
           <input 
             type="text"
@@ -884,6 +967,93 @@ export default function AdminPage() {
             </table>
           </div>
         </div>
+        </>)}
+
+        {activeTab === 'saques' && (
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden p-6">
+            <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-indigo-600 animate-pulse" />
+              Solicitações de Saque Pendentes ({pendingWithdrawalList.length})
+            </h2>
+
+            {pendingWithdrawalList.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+                <Check className="w-12 h-12 text-emerald-500 bg-emerald-50 p-2.5 rounded-full mb-3" />
+                <p className="font-black text-lg text-slate-800">Tudo em dia!</p>
+                <p className="text-sm font-medium mt-1">Nenhuma solicitação de saque pendente.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-50 border-b border-slate-100 text-slate-500">
+                    <tr>
+                      <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider">Usuário</th>
+                      <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider">Plano</th>
+                      <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider">Data do Pedido</th>
+                      <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider">Valor do Saque</th>
+                      <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {pendingWithdrawalList.map((w: any) => (
+                      <tr key={w.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-6 py-4 font-bold text-slate-900">{w.userEmail}</td>
+                        <td className="px-6 py-4">
+                          {w.userPlan === 'Diamond' && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-cyan-500 text-slate-950 text-[10px] font-black shadow-sm tracking-wide">
+                              VIP DIAMANTE
+                            </span>
+                          )}
+                          {w.userPlan === 'Gold' && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-500 text-slate-950 text-[10px] font-black shadow-sm">
+                              VIP GOLD
+                            </span>
+                          )}
+                          {w.userPlan === 'Silver' && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-indigo-500 text-white text-[10px] font-black shadow-sm">
+                              VIP SILVER
+                            </span>
+                          )}
+                          {w.userPlan === 'Basic' && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-black shadow-sm">
+                              GRÁTIS
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-slate-500 font-bold">
+                          {new Date(w.date).toLocaleString('pt-BR')}
+                        </td>
+                        <td className="px-6 py-4 text-slate-900 font-black text-base">
+                          R$ {Number(w.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleStatusUpdate(w.userId, w.id, 'Sucesso')}
+                              className="bg-emerald-500 hover:bg-emerald-600 text-white font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-emerald-500/10 cursor-pointer"
+                            >
+                              <Check className="w-4 h-4" /> Concluir Saque
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm('Tem certeza que deseja recusar este saque?')) {
+                                  handleStatusUpdate(w.userId, w.id, 'Recusado');
+                                }
+                              }}
+                              className="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                            >
+                              <X className="w-4 h-4" /> Recusar
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
 
       </div>
     </div>

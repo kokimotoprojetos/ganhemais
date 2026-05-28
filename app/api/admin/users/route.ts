@@ -85,7 +85,9 @@ export async function GET(req: Request) {
         invites,
         withdrawals: unsafeMetadata.withdrawals || [],
         deposit_balance: unsafeMetadata.deposit_balance !== undefined ? Number(unsafeMetadata.deposit_balance) : 0,
-        bonus_balance: unsafeMetadata.bonus_balance !== undefined ? Number(unsafeMetadata.bonus_balance) : 0
+        bonus_balance: unsafeMetadata.bonus_balance !== undefined ? Number(unsafeMetadata.bonus_balance) : 0,
+        mega_bonus_active: unsafeMetadata.mega_bonus_active === true,
+        mega_bonus_claimed: unsafeMetadata.mega_bonus_claimed === true
       };
     });
 
@@ -102,7 +104,7 @@ export async function PUT(req: Request) {
   }
 
   try {
-    const { id, balance, invite_bonus, app_downloaded, plan, withdrawals, deposit_balance, bonus_balance } = await req.json();
+    const { id, balance, invite_bonus, app_downloaded, plan, withdrawals, deposit_balance, bonus_balance, mega_bonus_active, mega_bonus_claimed } = await req.json();
 
     if (!id) throw new Error('User ID is required');
 
@@ -140,6 +142,12 @@ export async function PUT(req: Request) {
     }
     if (bonus_balance !== undefined) {
       updateMetadata.unsafeMetadata.bonus_balance = Number(bonus_balance);
+    }
+    if (mega_bonus_active !== undefined) {
+      updateMetadata.unsafeMetadata.mega_bonus_active = Boolean(mega_bonus_active);
+    }
+    if (mega_bonus_claimed !== undefined) {
+      updateMetadata.unsafeMetadata.mega_bonus_claimed = Boolean(mega_bonus_claimed);
     }
     await client.users.updateUserMetadata(id, updateMetadata);
 

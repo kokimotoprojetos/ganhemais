@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Fragment } from 'react';
 import { motion } from 'motion/react';
-import { Check, Edit2, LogOut, RefreshCw, Save, ShieldAlert, Smartphone, Users, X, Star, Crown, ChevronDown, ChevronUp, History, Plus, Trash2, Calendar, Clock } from 'lucide-react';
+import { Check, Edit2, LogOut, RefreshCw, Save, ShieldAlert, Smartphone, Users, X, Star, Crown, ChevronDown, ChevronUp, History, Plus, Trash2, Calendar, Clock, Sparkles, Zap } from 'lucide-react';
 
 interface UserData {
   id: string;
@@ -19,6 +19,8 @@ interface UserData {
   withdrawals?: any[];
   deposit_balance: number;
   bonus_balance: number;
+  mega_bonus_active?: boolean;
+  mega_bonus_claimed?: boolean;
 }
 
 const ADMIN_TOKEN = 'admin_replio_2026_secreto';
@@ -217,6 +219,34 @@ export default function AdminPage() {
     }
   };
 
+  const handleToggleMegaBonus = async (userId: string, nextActive: boolean, nextClaimed: boolean) => {
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${ADMIN_TOKEN}`
+        },
+        body: JSON.stringify({
+          id: userId,
+          mega_bonus_active: nextActive,
+          mega_bonus_claimed: nextClaimed
+        })
+      });
+      if (!res.ok) throw new Error('Falha ao atualizar status do Mega Bônus');
+      
+      // Update local state directly
+      setUsers(prev => prev.map(u => {
+        if (u.id === userId) {
+          return { ...u, mega_bonus_active: nextActive, mega_bonus_claimed: nextClaimed };
+        }
+        return u;
+      }));
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   const paidUsers = users.filter(user => user.plan !== 'Basic');
 
   const filteredUsers = users.filter(user => {
@@ -239,13 +269,15 @@ export default function AdminPage() {
   ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<{ balance: string; deposit_balance: string; bonus_balance: string; invite_bonus: string; app_downloaded: boolean; plan: string }>({
+  const [editForm, setEditForm] = useState<{ balance: string; deposit_balance: string; bonus_balance: string; invite_bonus: string; app_downloaded: boolean; plan: string; mega_bonus_active: boolean; mega_bonus_claimed: boolean }>({
     balance: '0',
     deposit_balance: '0',
     bonus_balance: '0',
     invite_bonus: '0.50',
     app_downloaded: false,
-    plan: 'Basic'
+    plan: 'Basic',
+    mega_bonus_active: false,
+    mega_bonus_claimed: false
   });
 
   const handleLogin = (e: React.FormEvent) => {
@@ -285,7 +317,9 @@ export default function AdminPage() {
       bonus_balance: (user.bonus_balance || 0).toString(),
       invite_bonus: user.invite_bonus.toString(),
       app_downloaded: user.app_downloaded,
-      plan: user.plan
+      plan: user.plan,
+      mega_bonus_active: user.mega_bonus_active === true,
+      mega_bonus_claimed: user.mega_bonus_claimed === true
     });
   };
 
@@ -336,7 +370,9 @@ export default function AdminPage() {
           bonus_balance: Number(editForm.bonus_balance),
           invite_bonus: Number(editForm.invite_bonus),
           app_downloaded: editForm.app_downloaded,
-          plan: editForm.plan
+          plan: editForm.plan,
+          mega_bonus_active: editForm.mega_bonus_active,
+          mega_bonus_claimed: editForm.mega_bonus_claimed
         })
       });
       if (!res.ok) throw new Error('Falha ao atualizar usuário');
@@ -764,6 +800,8 @@ export default function AdminPage() {
                     <tr className="bg-slate-50/70 border-b border-slate-100">
                       <td colSpan={6} className="px-8 py-6">
                         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2 space-y-6">
                           
                           {/* Title */}
                           <div className="flex justify-between items-center pb-4 border-b border-slate-100">
@@ -948,8 +986,70 @@ export default function AdminPage() {
                               </tbody>
                             </table>
                           </div>
-
                         </div>
+
+                        {/* Mega Bônus Control Card */}
+                        <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 h-fit space-y-4">
+                          <div className="flex items-center gap-2 pb-3 border-b border-slate-200">
+                            <Sparkles className="w-5 h-5 text-yellow-500 animate-pulse" />
+                            <h4 className="font-black text-sm uppercase tracking-wider text-slate-800">Mega Bônus R$ 30,00</h4>
+                          </div>
+
+                          <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                            Lance um popup de tela cheia para o usuário oferecendo um bônus de <strong className="text-slate-700">R$ 30,00</strong> se ele realizar um depósito mínimo de <strong className="text-slate-700">R$ 15,00</strong>.
+                          </p>
+
+                          <div className="pt-2">
+                            {user.mega_bonus_active ? (
+                              <div className="space-y-4">
+                                <div className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-700 p-3 rounded-2xl text-xs font-black flex items-center gap-2">
+                                  <Zap className="w-4 h-4 shrink-0 text-yellow-500 animate-bounce" />
+                                  <span>⚡ POPUP MEGA BÔNUS ATIVO</span>
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-bold text-center">
+                                  O usuário verá o popup em tela cheia na próxima vez que acessar a conta.
+                                </p>
+                                <button
+                                  onClick={() => handleToggleMegaBonus(user.id, false, true)}
+                                  className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-black py-3 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                                >
+                                  Cancelar e Desativar Oferta
+                                </button>
+                              </div>
+                            ) : user.mega_bonus_claimed ? (
+                              <div className="space-y-4">
+                                <div className="bg-emerald-50 border border-emerald-100 text-emerald-700 p-3 rounded-2xl text-xs font-black flex items-center gap-2">
+                                  <Check className="w-4 h-4 shrink-0 text-emerald-500" />
+                                  <span>OFERTA REIVINDICADA / DELETADA</span>
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-bold text-center">
+                                  Este usuário já interagiu com a oferta (reivindicou ou fechou).
+                                </p>
+                                <button
+                                  onClick={() => handleToggleMegaBonus(user.id, true, false)}
+                                  className="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-black py-3 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                                >
+                                  Reativar Popup de Oferta
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="space-y-4">
+                                <div className="bg-slate-200/50 border border-slate-300/40 text-slate-600 p-3 rounded-2xl text-xs font-black text-center">
+                                  SEM OFERTA ATIVA NO MOMENTO
+                                </div>
+                                <button
+                                  onClick={() => handleToggleMegaBonus(user.id, true, false)}
+                                  className="w-full bg-gradient-to-r from-yellow-500 to-amber-400 hover:brightness-110 text-slate-950 font-black py-3.5 rounded-2xl text-xs shadow-lg shadow-yellow-500/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                                >
+                                  <Sparkles className="w-4 h-4 fill-slate-950 text-slate-950" /> LANÇAR MEGA BÔNUS
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
                       </td>
                     </tr>
                   )}

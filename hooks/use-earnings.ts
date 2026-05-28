@@ -52,6 +52,8 @@ export function useEarnings() {
   const [pendingWithdrawals, setPendingWithdrawals] = useState<PendingWithdrawal[]>([]);
   const [depositBalance, setDepositBalance] = useState(0);
   const [bonusBalance, setBonusBalance] = useState(0);
+  const [megaBonusActive, setMegaBonusActive] = useState(false);
+  const [megaBonusClaimed, setMegaBonusClaimed] = useState(false);
 
   const { user, isLoaded, isSignedIn } = useUser();
   const { signOut } = useClerk();
@@ -99,6 +101,13 @@ export function useEarnings() {
       setBonusBalance(0);
     }
   }, [userId, user?.unsafeMetadata?.bonus_balance]);
+
+  // Sync mega bonus active status when metadata updates
+  useEffect(() => {
+    if (!userId) return;
+    setMegaBonusActive(user?.unsafeMetadata?.mega_bonus_active === true);
+    setMegaBonusClaimed(user?.unsafeMetadata?.mega_bonus_claimed === true);
+  }, [userId, user?.unsafeMetadata?.mega_bonus_active, user?.unsafeMetadata?.mega_bonus_claimed]);
 
   // Sync profile data from Supabase
   useEffect(() => {
@@ -577,6 +586,55 @@ export function useEarnings() {
     return true;
   };
 
+  const claimMegaBonus = async () => {
+    if (!userId || !user) return false;
+
+    const newDepositBalance = Number((depositBalance + 15).toFixed(2));
+    const newBonusBalance = Number((bonusBalance + 30).toFixed(2));
+
+    setDepositBalance(newDepositBalance);
+    setBonusBalance(newBonusBalance);
+    setMegaBonusActive(false);
+    setMegaBonusClaimed(true);
+
+    try {
+      await user.update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          deposit_balance: newDepositBalance,
+          bonus_balance: newBonusBalance,
+          mega_bonus_active: false,
+          mega_bonus_claimed: true
+        }
+      });
+      return true;
+    } catch (err) {
+      console.error("Failed to update Clerk metadata with mega bonus:", err);
+      return false;
+    }
+  };
+
+  const dismissMegaBonus = async () => {
+    if (!userId || !user) return false;
+
+    setMegaBonusActive(false);
+    setMegaBonusClaimed(true);
+
+    try {
+      await user.update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          mega_bonus_active: false,
+          mega_bonus_claimed: true
+        }
+      });
+      return true;
+    } catch (err) {
+      console.error("Failed to update Clerk metadata with dismiss mega bonus:", err);
+      return false;
+    }
+  };
+
   const dailyCheckIn = async () => {
     if (!userId) return false;
     const today = new Date().toDateString();
@@ -645,5 +703,9 @@ export function useEarnings() {
     trackAppDownload,
     isAuthenticated: !!userId,
     logout,
+    megaBonusActive,
+    megaBonusClaimed,
+    claimMegaBonus,
+    dismissMegaBonus,
   };
 }

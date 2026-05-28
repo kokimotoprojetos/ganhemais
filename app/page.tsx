@@ -37,6 +37,7 @@ import { BookOpen } from 'lucide-react';
 import { DepositModal } from '@/components/deposit-modal';
 import { WithdrawModal } from '@/components/withdraw-modal';
 import { BonusWithdrawModal } from '@/components/bonus-withdraw-modal';
+import { MegaBonusPopup } from '@/components/mega-bonus-popup';
 import { YOUTUBE_VIDEOS, PIB_TASKS } from '@/lib/tasks-data';
 
 type Tab = 'painel' | 'carteira' | 'planos' | 'convites' | 'equipe';
@@ -44,7 +45,7 @@ type Tab = 'painel' | 'carteira' | 'planos' | 'convites' | 'equipe';
 const Page = () => {
   // Referral handling moved down
 
-  const { stats, team, pendingWithdrawals, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, withdrawBonus, upgradePlan, purchasePlanWithBalance, deposit, depositBalance, bonusBalance, inviteBonus, isAuthenticated, appDownloaded, trackAppDownload, logout } = useEarnings();
+  const { stats, team, pendingWithdrawals, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, withdrawBonus, upgradePlan, purchasePlanWithBalance, deposit, depositBalance, bonusBalance, inviteBonus, isAuthenticated, appDownloaded, trackAppDownload, logout, megaBonusActive, megaBonusClaimed, claimMegaBonus, dismissMegaBonus } = useEarnings();
   const [activeTab, setActiveTab] = useState<Tab>('painel');
   const [showNotification, setShowNotification] = useState<string | null>(null);
   const [pendingRef, setPendingRef] = useState<string | null>(null);
@@ -1224,6 +1225,12 @@ const Page = () => {
         invitesCount={stats.invites} 
         vipsCount={team.filter(m => m.plan !== 'Basic').length} 
         onSuccess={handleBonusWithdrawSuccess} 
+      />
+      <MegaBonusPopup
+        isOpen={megaBonusActive && !megaBonusClaimed}
+        onClose={() => {}}
+        onDismiss={dismissMegaBonus}
+        onClaimSuccess={claimMegaBonus}
       />
       <AnimatePresence>
         {showWelcomeModal && (

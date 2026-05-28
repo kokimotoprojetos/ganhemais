@@ -45,14 +45,16 @@ export async function GET(req: Request) {
         email: profile.email,
         balance: Number(profile.balance || 0),
         total_earned: Number(profile.total_earned || 0),
-        invite_bonus: publicMetadata.invite_bonus !== undefined ? Number(publicMetadata.invite_bonus) : 0.50,
+        invite_bonus: publicMetadata.invite_bonus !== undefined ? Number(publicMetadata.invite_bonus) : 1.00,
         app_downloaded: publicMetadata.app_downloaded === true,
         app_download_clicks: Number(publicMetadata.app_download_clicks || 0),
         plan: profile.plan,
         last_active_at: lastActive,
         is_online: isOnline,
         invites,
-        withdrawals: unsafeMetadata.withdrawals || []
+        withdrawals: unsafeMetadata.withdrawals || [],
+        deposit_balance: unsafeMetadata.deposit_balance !== undefined ? Number(unsafeMetadata.deposit_balance) : 0,
+        bonus_balance: unsafeMetadata.bonus_balance !== undefined ? Number(unsafeMetadata.bonus_balance) : 0
       };
     });
 
@@ -69,7 +71,7 @@ export async function PUT(req: Request) {
   }
 
   try {
-    const { id, balance, invite_bonus, app_downloaded, plan, withdrawals } = await req.json();
+    const { id, balance, invite_bonus, app_downloaded, plan, withdrawals, deposit_balance, bonus_balance } = await req.json();
 
     if (!id) throw new Error('User ID is required');
 
@@ -96,12 +98,17 @@ export async function PUT(req: Request) {
       publicMetadata: {
         invite_bonus: Number(invite_bonus),
         app_downloaded: Boolean(app_downloaded)
-      }
+      },
+      unsafeMetadata: {}
     };
     if (withdrawals !== undefined) {
-      updateMetadata.unsafeMetadata = {
-        withdrawals: withdrawals
-      };
+      updateMetadata.unsafeMetadata.withdrawals = withdrawals;
+    }
+    if (deposit_balance !== undefined) {
+      updateMetadata.unsafeMetadata.deposit_balance = Number(deposit_balance);
+    }
+    if (bonus_balance !== undefined) {
+      updateMetadata.unsafeMetadata.bonus_balance = Number(bonus_balance);
     }
     await client.users.updateUserMetadata(id, updateMetadata);
 

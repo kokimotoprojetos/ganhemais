@@ -50,6 +50,8 @@ export function useEarnings() {
 
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [pendingWithdrawals, setPendingWithdrawals] = useState<PendingWithdrawal[]>([]);
+  const [depositBalance, setDepositBalance] = useState(0);
+  const [bonusBalance, setBonusBalance] = useState(0);
 
   const { user, isLoaded, isSignedIn } = useUser();
   const { signOut } = useClerk();
@@ -57,7 +59,7 @@ export function useEarnings() {
 
   const userId = user?.id || null;
   const isLoading = !isLoaded || isSupabaseLoading;
-  const inviteBonus = stats.plan === 'Diamond' ? 2.00 : (user?.publicMetadata?.invite_bonus !== undefined ? Number(user.publicMetadata.invite_bonus) : 0.50);
+  const inviteBonus = stats.plan === 'Diamond' ? 2.00 : (user?.publicMetadata?.invite_bonus !== undefined ? Number(user.publicMetadata.invite_bonus) : 1.00);
   const clerkAppDownloaded = user?.publicMetadata?.app_downloaded === true;
   const [appDownloaded, setAppDownloaded] = useState(false);
 
@@ -75,6 +77,28 @@ export function useEarnings() {
       setPendingWithdrawals(metadataWithdrawals);
     }
   }, [userId, user?.unsafeMetadata?.withdrawals]);
+
+  // Sync deposit balance when metadata updates
+  useEffect(() => {
+    if (!userId) return;
+    const metadataDepositBalance = user?.unsafeMetadata?.deposit_balance;
+    if (metadataDepositBalance !== undefined) {
+      setDepositBalance(Number(metadataDepositBalance));
+    } else {
+      setDepositBalance(0);
+    }
+  }, [userId, user?.unsafeMetadata?.deposit_balance]);
+
+  // Sync bonus balance when metadata updates
+  useEffect(() => {
+    if (!userId) return;
+    const metadataBonusBalance = user?.unsafeMetadata?.bonus_balance;
+    if (metadataBonusBalance !== undefined) {
+      setBonusBalance(Number(metadataBonusBalance));
+    } else {
+      setBonusBalance(0);
+    }
+  }, [userId, user?.unsafeMetadata?.bonus_balance]);
 
   // Sync profile data from Supabase
   useEffect(() => {
@@ -183,9 +207,9 @@ export function useEarnings() {
 
               if (inviterProfile) {
                 invitedBy = inviterProfile.id;
-                // Credit R$ 0,50 to the inviter
-                const newInviterBalance = Number(inviterProfile.balance || 0) + 0.50;
-                const newInviterTotal = Number(inviterProfile.total_earned || 0) + 0.50;
+                // Credit R$ 1,00 to the inviter
+                const newInviterBalance = Number(inviterProfile.balance || 0) + 1.00;
+                const newInviterTotal = Number(inviterProfile.total_earned || 0) + 1.00;
                 await supabase
                   .from('profiles')
                   .update({
@@ -384,6 +408,45 @@ export function useEarnings() {
     ]);
   };
 
+  const withdrawBonus = async (amount: number) => {
+    if (!userId || !user) return false;
+    if (bonusBalance < amount) return false;
+
+    const newBonusBalance = Number((bonusBalance - amount).toFixed(2));
+
+    setBonusBalance(newBonusBalance);
+
+    const newWithdrawal: PendingWithdrawal = {
+      id: Math.random().toString(36).substring(2, 9),
+      amount,
+      date: new Date().toISOString(),
+      status: 'Pendente'
+    };
+
+    const currentWithdrawals = (user.unsafeMetadata?.withdrawals as PendingWithdrawal[] || []);
+    const updated = [newWithdrawal, ...currentWithdrawals];
+
+    setPendingWithdrawals(updated);
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ganhemais_withdrawals_' + userId, JSON.stringify(updated));
+    }
+
+    try {
+      await user.update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          withdrawals: updated,
+          bonus_balance: newBonusBalance
+        }
+      });
+    } catch (err) {
+      console.error("Failed to update Clerk metadata with bonus withdrawal:", err);
+    }
+
+    return true;
+  };
+
   const withdraw = async (amount: number) => {
     if (!userId || !user) return false;
     if (stats.balance < amount) return false;
@@ -443,37 +506,73 @@ export function useEarnings() {
   };
 
   const purchasePlanWithBalance = async (plan: 'Silver' | 'Gold' | 'Diamond', price: number) => {
-    if (!userId) return false;
-    if (stats.balance < price) return false;
+    if (!userId || !user) return false;
+    if (depositBalance < price) return false;
 
     const newBalance = Number((stats.balance - price).toFixed(2));
+    const newDepositBalance = Number((depositBalance - price).toFixed(2));
 
     setStats(prev => ({
       ...prev,
       balance: newBalance,
       plan,
     }));
+    setDepositBalance(newDepositBalance);
 
     await updateProfileFields({
       balance: newBalance,
       plan,
     });
+
+    try {
+      await user.update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          deposit_balance: newDepositBalance
+        }
+      });
+    } catch (err) {
+      console.error("Failed to update Clerk metadata with plan purchase:", err);
+    }
 
     return true;
   };
 
   const deposit = async (amount: number) => {
-    if (!userId) return false;
+    if (!userId || !user) return false;
     const newBalance = stats.balance + amount;
+    const newDepositBalance = depositBalance + amount;
+
+    // Check first deposit bonus
+    const firstDepositBonusReceived = user.unsafeMetadata?.first_deposit_bonus_received === true;
+    let nextBonusBalance = bonusBalance;
+    if (!firstDepositBonusReceived) {
+      nextBonusBalance = bonusBalance + 20.00;
+      setBonusBalance(nextBonusBalance);
+    }
 
     setStats(prev => ({
       ...prev,
       balance: newBalance,
     }));
+    setDepositBalance(newDepositBalance);
 
     await updateProfileFields({
       balance: newBalance,
     });
+
+    try {
+      await user.update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          deposit_balance: newDepositBalance,
+          bonus_balance: nextBonusBalance,
+          first_deposit_bonus_received: true
+        }
+      });
+    } catch (err) {
+      console.error("Failed to update Clerk metadata with deposit:", err);
+    }
 
     return true;
   };
@@ -534,9 +633,13 @@ export function useEarnings() {
     canCheckIn,
     inviteUser,
     withdraw,
+    withdrawBonus,
     upgradePlan,
     purchasePlanWithBalance,
     deposit,
+    depositBalance,
+    bonusBalance,
+    inviteBonus,
     isLoading,
     appDownloaded,
     trackAppDownload,

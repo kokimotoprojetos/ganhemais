@@ -17,6 +17,8 @@ interface UserData {
   last_active_at: number;
   invites: number;
   withdrawals?: any[];
+  deposit_balance: number;
+  bonus_balance: number;
 }
 
 const ADMIN_TOKEN = 'admin_replio_2026_secreto';
@@ -188,8 +190,10 @@ export default function AdminPage() {
   });
   
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<{ balance: string; invite_bonus: string; app_downloaded: boolean; plan: string }>({
+  const [editForm, setEditForm] = useState<{ balance: string; deposit_balance: string; bonus_balance: string; invite_bonus: string; app_downloaded: boolean; plan: string }>({
     balance: '0',
+    deposit_balance: '0',
+    bonus_balance: '0',
     invite_bonus: '0.50',
     app_downloaded: false,
     plan: 'Basic'
@@ -228,6 +232,8 @@ export default function AdminPage() {
     setEditingId(user.id);
     setEditForm({
       balance: user.balance.toString(),
+      deposit_balance: (user.deposit_balance || 0).toString(),
+      bonus_balance: (user.bonus_balance || 0).toString(),
       invite_bonus: user.invite_bonus.toString(),
       app_downloaded: user.app_downloaded,
       plan: user.plan
@@ -240,6 +246,7 @@ export default function AdminPage() {
 
     let finalBalance = Number(editForm.balance);
     const planChanged = editForm.plan !== user.plan;
+    let finalDepositBalance = Number(editForm.deposit_balance);
 
     if (planChanged) {
       if (editForm.plan === 'Silver') {
@@ -248,18 +255,21 @@ export default function AdminPage() {
           return;
         }
         finalBalance = Number((finalBalance - 29.90).toFixed(2));
+        finalDepositBalance = Math.max(0, finalDepositBalance - 29.90);
       } else if (editForm.plan === 'Gold') {
         if (finalBalance < 97.00) {
           alert('Saldo insuficiente! Para ativar o plano Gold, o usuário precisa ter no mínimo R$ 97,00 de saldo em conta.');
           return;
         }
         finalBalance = Number((finalBalance - 97.00).toFixed(2));
+        finalDepositBalance = Math.max(0, finalDepositBalance - 97.00);
       } else if (editForm.plan === 'Diamond') {
         if (finalBalance < 149.90) {
           alert('Saldo insuficiente! Para ativar o plano Diamond, o usuário precisa ter no mínimo R$ 149,90 de saldo em conta.');
           return;
         }
         finalBalance = Number((finalBalance - 149.90).toFixed(2));
+        finalDepositBalance = Math.max(0, finalDepositBalance - 149.90);
       }
     }
 
@@ -273,6 +283,8 @@ export default function AdminPage() {
         body: JSON.stringify({
           id: userId,
           balance: finalBalance,
+          deposit_balance: finalDepositBalance,
+          bonus_balance: Number(editForm.bonus_balance),
           invite_bonus: Number(editForm.invite_bonus),
           app_downloaded: editForm.app_downloaded,
           plan: editForm.plan
@@ -434,6 +446,8 @@ export default function AdminPage() {
                 <tr>
                   <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider">Usuário</th>
                   <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider">Saldo (R$)</th>
+                  <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider">Saldo Depósito (R$)</th>
+                  <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider">Saldo Bônus (R$)</th>
                   <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider">Bônus Convite (R$)</th>
                   <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider">Convidados</th>
                   <th className="px-6 py-4 font-bold uppercase text-xs tracking-wider">App Baixado</th>
@@ -540,6 +554,24 @@ export default function AdminPage() {
                           <input 
                             type="number" 
                             step="0.01"
+                            value={editForm.deposit_balance}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, deposit_balance: e.target.value }))}
+                            className="w-24 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                          />
+                        </td>
+                        <td className="px-6 py-4">
+                          <input 
+                            type="number" 
+                            step="0.01"
+                            value={editForm.bonus_balance}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, bonus_balance: e.target.value }))}
+                            className="w-24 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                          />
+                        </td>
+                        <td className="px-6 py-4">
+                          <input 
+                            type="number" 
+                            step="0.01"
                             value={editForm.invite_bonus}
                             onChange={(e) => setEditForm(prev => ({ ...prev, invite_bonus: e.target.value }))}
                             className="w-24 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -582,6 +614,12 @@ export default function AdminPage() {
                       <>
                         <td className="px-6 py-4 font-bold text-slate-700">
                           R$ {user.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-6 py-4 font-bold text-emerald-600">
+                          R$ {(user.deposit_balance || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-6 py-4 font-bold text-amber-600">
+                          R$ {(user.bonus_balance || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </td>
                         <td className="px-6 py-4 font-bold text-slate-700">
                           R$ {user.invite_bonus.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}

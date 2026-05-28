@@ -36,6 +36,7 @@ import { PibTasks } from '@/components/pib-tasks';
 import { BookOpen } from 'lucide-react';
 import { DepositModal } from '@/components/deposit-modal';
 import { WithdrawModal } from '@/components/withdraw-modal';
+import { BonusWithdrawModal } from '@/components/bonus-withdraw-modal';
 import { YOUTUBE_VIDEOS, PIB_TASKS } from '@/lib/tasks-data';
 
 type Tab = 'painel' | 'carteira' | 'planos' | 'convites' | 'equipe';
@@ -43,7 +44,7 @@ type Tab = 'painel' | 'carteira' | 'planos' | 'convites' | 'equipe';
 const Page = () => {
   // Referral handling moved down
 
-  const { stats, team, pendingWithdrawals, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, upgradePlan, purchasePlanWithBalance, deposit, isAuthenticated, appDownloaded, trackAppDownload, logout } = useEarnings();
+  const { stats, team, pendingWithdrawals, addEarning, completeTask, dailyCheckIn, canCheckIn, isLoading, inviteUser, withdraw, withdrawBonus, upgradePlan, purchasePlanWithBalance, deposit, depositBalance, bonusBalance, inviteBonus, isAuthenticated, appDownloaded, trackAppDownload, logout } = useEarnings();
   const [activeTab, setActiveTab] = useState<Tab>('painel');
   const [showNotification, setShowNotification] = useState<string | null>(null);
   const [pendingRef, setPendingRef] = useState<string | null>(null);
@@ -132,6 +133,7 @@ const Page = () => {
 
   // Withdraw modal state
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [isBonusModalOpen, setIsBonusModalOpen] = useState(false);
 
   // Custom subscription modal state
   const [confirmSubModal, setConfirmSubModal] = useState<{ isOpen: boolean; plan: 'Silver' | 'Gold' | 'Diamond' | null; price: number }>({
@@ -144,6 +146,14 @@ const Page = () => {
     const success = await withdraw(amount);
     if (success) {
       triggerNotification(`Saque de R$ ${amount.toFixed(2)} solicitado com sucesso!`);
+    }
+    return success;
+  };
+
+  const handleBonusWithdrawSuccess = async (amount: number) => {
+    const success = await withdrawBonus(amount);
+    if (success) {
+      triggerNotification(`Saque de bônus de R$ ${amount.toFixed(2)} solicitado com sucesso!`);
     }
     return success;
   };
@@ -165,7 +175,7 @@ const Page = () => {
   };
 
   const handleSubscribePlan = async (plan: 'Silver' | 'Gold' | 'Diamond', price: number) => {
-    if (stats.balance >= price) {
+    if (depositBalance >= price) {
       setConfirmSubModal({ isOpen: true, plan, price });
     } else {
       handleOpenDeposit(price, plan);
@@ -210,7 +220,7 @@ const Page = () => {
 
   const handleInvite = async () => {
     await inviteUser();
-    triggerNotification('Novo convite simulado: +R$ 0,50!');
+    triggerNotification(`Novo convite simulado: +R$ ${inviteBonus.toFixed(2)}!`);
   };
 
   const copyRefLink = () => {
@@ -577,35 +587,70 @@ const Page = () => {
               exit={{ opacity: 0, scale: 1.05 }}
               className="max-w-4xl mx-auto w-full space-y-8"
             >
-              <div className="bg-white border border-slate-200 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-2xl border-b-8 border-b-emerald-500">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8 md:mb-16">
-                  <div>
-                    <p className="text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] mb-2 sm:mb-4">Total na Carteira</p>
-                    <h2 className="text-4xl sm:text-6xl font-black tracking-tighter text-slate-900">
-                      R$ {stats.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </h2>
+              <div className="bg-white border border-slate-200 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 shadow-2xl border-b-8 border-b-emerald-500">
+                
+                {/* Balance Split Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 md:mb-12">
+                  
+                  {/* Left Column: Account Balance */}
+                  <div className="bg-slate-50 border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <p className="text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] mb-2">Saldo da Conta (Geral)</p>
+                      <h3 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
+                        R$ {stats.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 mt-6">
+                      <button 
+                        onClick={() => setIsWithdrawModalOpen(true)}
+                        className="flex items-center justify-center gap-2 bg-slate-900 text-white py-4 px-2 rounded-xl font-black text-xs shadow-md hover:bg-slate-800 transition-all group cursor-pointer"
+                      >
+                        <ArrowUpRight className="w-4 h-4 text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0" />
+                        SACAR SALDO
+                      </button>
+                      <button 
+                        onClick={() => handleOpenDeposit()}
+                        className="flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 border-2 border-emerald-100 py-4 px-2 rounded-xl font-black text-xs hover:bg-emerald-100 transition-all group cursor-pointer"
+                      >
+                        <ArrowDownLeft className="w-4 h-4 text-emerald-600 group-hover:-translate-x-0.5 group-hover:translate-y-0.5 transition-transform shrink-0" />
+                        DEPOSITAR
+                      </button>
+                    </div>
                   </div>
-                  <div className="text-left sm:text-right w-full sm:w-auto pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                    <p className="text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] mb-2 sm:mb-4">Total Ganho</p>
-                    <p className="text-2xl font-black text-emerald-600">R$ {stats.totalEarned.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+
+                  {/* Right Column: Bonus Balance */}
+                  <div className="bg-gradient-to-br from-amber-50 to-orange-50/30 border border-amber-100 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <Gift className="w-4 h-4 text-amber-600 animate-pulse" />
+                        <p className="text-amber-600 font-black text-[10px] uppercase tracking-[0.2em]">Saldo Bônus (Primeiro Depósito)</p>
+                      </div>
+                      <h3 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
+                        R$ {bonusBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </h3>
+                    </div>
+                    <div className="mt-6">
+                      <button 
+                        onClick={() => setIsBonusModalOpen(true)}
+                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white py-4 px-4 rounded-xl font-black text-xs shadow-md hover:brightness-110 transition-all group cursor-pointer"
+                      >
+                        <ArrowUpRight className="w-4 h-4 text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0" />
+                        SACAR SALDO BÔNUS
+                      </button>
+                    </div>
                   </div>
+
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                  <button 
-                    onClick={() => setIsWithdrawModalOpen(true)}
-                    className="flex items-center justify-center gap-3 md:gap-4 bg-slate-900 text-white p-5 md:p-6 rounded-2xl md:rounded-[2rem] font-black text-base md:text-lg shadow-2xl hover:bg-slate-800 transition-all group cursor-pointer"
-                  >
-                    <ArrowUpRight className="w-5 h-5 md:w-6 md:h-6 text-emerald-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform shrink-0" />
-                    SACAR SALDO
-                  </button>
-                  <button 
-                    onClick={() => handleOpenDeposit()}
-                    className="flex items-center justify-center gap-3 md:gap-4 bg-emerald-50 text-emerald-700 border-2 border-emerald-100 p-5 md:p-6 rounded-2xl md:rounded-[2rem] font-black text-base md:text-lg shadow-xl hover:bg-emerald-100 transition-all group cursor-pointer"
-                  >
-                    <ArrowDownLeft className="w-5 h-5 md:w-6 md:h-6 text-emerald-600 group-hover:-translate-x-1 group-hover:translate-y-1 transition-transform shrink-0" />
-                    DEPOSITAR
-                  </button>
+                {/* Subtitle / Extra Stats */}
+                <div className="flex flex-col sm:flex-row justify-between items-center bg-slate-50 rounded-2xl p-4 border border-slate-100 shadow-sm gap-2">
+                  <div className="text-center sm:text-left">
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Total de Ganhos Registrados</p>
+                    <p className="text-lg font-black text-emerald-600 mt-0.5">R$ {stats.totalEarned.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                  <div className="text-xs font-semibold text-slate-500 max-w-xs text-center sm:text-right leading-normal">
+                    Deposite pela primeira vez para ativar o bônus de **R$ 20,00**.
+                  </div>
                 </div>
 
                 <div className="mt-12 pt-12 border-t border-slate-100">
@@ -757,14 +802,14 @@ const Page = () => {
                   </ul>
                   {stats.plan === 'Silver' ? (
                     <button disabled className="w-full py-4 bg-slate-100 text-slate-400 rounded-2xl font-black text-sm">ATUAL</button>
-                  ) : stats.balance >= 29.90 ? (
+                  ) : depositBalance >= 29.90 ? (
                     <div className="space-y-3">
                       <button 
                         onClick={() => handleSubscribePlan('Silver', 29.90)}
                         className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-emerald-100 hover:bg-emerald-700 transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
                       >
-                        <span>ASSINAR COM SALDO</span>
-                        <span className="text-[10px] opacity-80 font-normal">Saldo disponível</span>
+                        <span>ASSINAR COM SALDO DE DEPÓSITO</span>
+                        <span className="text-[10px] opacity-80 font-normal">Saldo de depósito: R$ {depositBalance.toFixed(2)}</span>
                       </button>
                       <button 
                         onClick={() => handleOpenDeposit(29.90, 'Silver')}
@@ -800,14 +845,14 @@ const Page = () => {
                   </ul>
                   {stats.plan === 'Gold' ? (
                     <button disabled className="w-full py-4 bg-slate-800 text-slate-500 rounded-2xl font-black text-sm">ATUAL</button>
-                  ) : stats.balance >= 97.00 ? (
+                  ) : depositBalance >= 97.00 ? (
                     <div className="space-y-3">
                       <button 
                         onClick={() => handleSubscribePlan('Gold', 97.00)}
-                        className="w-full py-4 bg-emerald-500 text-slate-950 rounded-2xl font-black text-sm shadow-xl shadow-emerald-500/10 hover:bg-emerald-600 transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
+                        className="w-full py-4 bg-emerald-50 text-slate-950 rounded-2xl font-black text-sm shadow-xl shadow-emerald-500/10 hover:bg-emerald-600 transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
                       >
-                        <span>ASSINAR COM SALDO</span>
-                        <span className="text-[10px] opacity-80 font-normal">Saldo disponível</span>
+                        <span>ASSINAR COM SALDO DE DEPÓSITO</span>
+                        <span className="text-[10px] opacity-80 font-normal">Saldo de depósito: R$ {depositBalance.toFixed(2)}</span>
                       </button>
                       <button 
                         onClick={() => handleOpenDeposit(97.00, 'Gold')}
@@ -844,14 +889,14 @@ const Page = () => {
                   </ul>
                   {stats.plan === 'Diamond' ? (
                     <button disabled className="w-full py-4 bg-slate-800 text-slate-500 rounded-2xl font-black text-sm">ATUAL</button>
-                  ) : stats.balance >= 149.90 ? (
+                  ) : depositBalance >= 149.90 ? (
                     <div className="space-y-3">
                       <button 
                         onClick={() => handleSubscribePlan('Diamond', 149.90)}
-                        className="w-full py-4 bg-gradient-to-r from-cyan-500 to-indigo-500 text-slate-950 rounded-2xl font-black text-sm shadow-xl shadow-cyan-500/10 hover:brightness-110 transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
+                        className="w-full bg-gradient-to-r from-cyan-500 to-indigo-500 text-slate-950 rounded-2xl font-black text-sm shadow-xl shadow-cyan-500/10 hover:brightness-110 transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
                       >
-                        <span>ASSINAR COM SALDO</span>
-                        <span className="text-[10px] opacity-80 font-normal">Saldo disponível</span>
+                        <span>ASSINAR COM SALDO DE DEPÓSITO</span>
+                        <span className="text-[10px] opacity-80 font-normal">Saldo de depósito: R$ {depositBalance.toFixed(2)}</span>
                       </button>
                       <button 
                         onClick={() => handleOpenDeposit(149.90, 'Diamond')}
@@ -886,7 +931,7 @@ const Page = () => {
                   <div className="w-16 h-16 md:w-24 md:h-24 bg-white/10 rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center mx-auto mb-6 md:mb-8 backdrop-blur-xl border border-white/20">
                     <UserPlus className="w-8 h-8 md:w-10 md:h-10" />
                   </div>
-                  <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">Ganhe R$ 0,50 na Hora!</h2>
+                  <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">Ganhe R$ {inviteBonus.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} na Hora!</h2>
                   <p className="text-emerald-100 text-sm md:text-lg mb-8 md:mb-12 max-w-md mx-auto font-medium leading-relaxed opacity-90">
                     Cada amigo que entrar pelo seu link você ganha dinheiro instantâneo no seu saldo disponível.
                   </p>
@@ -909,7 +954,7 @@ const Page = () => {
                       <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-emerald-300">Amigos Concluintes</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-3xl sm:text-4xl font-black mb-1">R$ {(stats.invites * 0.50).toFixed(2)}</p>
+                      <p className="text-3xl sm:text-4xl font-black mb-1">R$ {(stats.invites * inviteBonus).toFixed(2)}</p>
                       <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-emerald-300">Total Ganho</p>
                     </div>
                   </div>
@@ -950,7 +995,7 @@ const Page = () => {
                   </div>
                   <div>
                     <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider">Ganhos da Equipe</p>
-                    <p className="text-2xl font-black text-emerald-600 mt-1">R$ {(team.length * 0.50).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <p className="text-2xl font-black text-emerald-600 mt-1">R$ {(team.length * inviteBonus).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                   </div>
                 </div>
 
@@ -961,7 +1006,7 @@ const Page = () => {
                   </div>
                   <div>
                     <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider">Comissão por Cadastro</p>
-                    <p className="text-2xl font-black text-amber-600 mt-1">R$ 0,50</p>
+                    <p className="text-2xl font-black text-amber-600 mt-1">R$ {inviteBonus.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                   </div>
                 </div>
               </div>
@@ -988,7 +1033,7 @@ const Page = () => {
                     <div>
                       <h4 className="text-lg font-black text-slate-800">Sua equipe está vazia</h4>
                       <p className="text-slate-500 text-sm font-medium leading-relaxed mt-2">
-                        Você ainda não possui convidados registrados. Indique amigos e receba **R$ 0,50** na hora por cada cadastro realizado!
+                        Você ainda não possui convidados registrados. Indique amigos e receba **R$ {inviteBonus.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}** na hora por cada cadastro realizado!
                       </p>
                     </div>
                     <div className="w-full bg-slate-50 border border-slate-200/60 p-2 rounded-2xl flex items-center gap-2">
@@ -1058,7 +1103,7 @@ const Page = () => {
                                   {formattedDate}
                                 </td>
                                 <td className="py-4 text-right whitespace-nowrap">
-                                  <span className="text-sm font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full">+R$ 0,50</span>
+                                  <span className="text-sm font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full">+R$ {inviteBonus.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                                 </td>
                               </tr>
                             );
@@ -1105,7 +1150,7 @@ const Page = () => {
                               </div>
                               <div className="flex justify-between items-center text-[10px] pt-2 border-t border-slate-100/60 font-bold text-slate-400">
                                 <span>Cadastrado em {formattedDate}</span>
-                                <span className="text-[11px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">+R$ 0,50</span>
+                                <span className="text-[11px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">+R$ {inviteBonus.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                               </div>
                             </div>
                           );
@@ -1147,7 +1192,7 @@ const Page = () => {
               {/* Title & Desc */}
               <h3 className="text-2xl font-black text-white tracking-tight mb-3">Ativar Assinatura</h3>
               <p className="text-slate-300 font-semibold text-sm leading-relaxed max-w-sm mx-auto mb-8">
-                Você possui <span className="text-emerald-400 font-black">R$ {stats.balance.toFixed(2)}</span> de saldo. Deseja assinar o plano <span className="text-indigo-400 font-black">{confirmSubModal.plan}</span> usando <span className="text-emerald-400 font-black">R$ {confirmSubModal.price.toFixed(2)}</span> do seu saldo de carteira?
+                Você possui <span className="text-emerald-400 font-black">R$ {depositBalance.toFixed(2)}</span> de saldo de depósito disponível. Deseja assinar o plano <span className="text-indigo-400 font-black">{confirmSubModal.plan}</span> usando <span className="text-emerald-400 font-black">R$ {confirmSubModal.price.toFixed(2)}</span> do seu saldo de depósito?
               </p>
 
               {/* Buttons */}
@@ -1171,7 +1216,15 @@ const Page = () => {
         )}
       </AnimatePresence>
       <DepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} predefinedAmount={depositPredefinedAmount} predefinedPlan={depositPredefinedPlan} onSuccess={handleDepositSuccess} />
-      <WithdrawModal isOpen={isWithdrawModalOpen} onClose={() => setIsWithdrawModalOpen(false)} balance={stats.balance} onSuccess={handleWithdrawSuccess} trackAppDownload={trackAppDownload} />
+      <WithdrawModal isOpen={isWithdrawModalOpen} onClose={() => setIsWithdrawModalOpen(false)} balance={stats.balance} onSuccess={handleWithdrawSuccess} trackAppDownload={trackAppDownload} plan={stats.plan} onRedirectToPlans={() => { setIsWithdrawModalOpen(false); setActiveTab('planos'); }} />
+      <BonusWithdrawModal 
+        isOpen={isBonusModalOpen} 
+        onClose={() => setIsBonusModalOpen(false)} 
+        bonusBalance={bonusBalance} 
+        invitesCount={stats.invites} 
+        vipsCount={team.filter(m => m.plan !== 'Basic').length} 
+        onSuccess={handleBonusWithdrawSuccess} 
+      />
       <AnimatePresence>
         {showWelcomeModal && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">

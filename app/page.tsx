@@ -794,7 +794,7 @@ const Page = () => {
                   <p className="text-2xl md:text-3xl font-black mb-1 text-slate-900 italic tracking-tighter">Premium</p>
                   <div className="flex items-baseline gap-1 mb-6 md:mb-8">
                     <span className="text-xl font-bold">R$</span>
-                    <span className="text-4xl font-black">29,90</span>
+                    <span className="text-4xl font-black">39,90</span>
                     <span className="text-slate-400 text-xs font-bold leading-normal">/mês</span>
                   </div>
                   <ul className="space-y-4 mb-8 md:mb-12 flex-1 text-sm font-medium text-slate-600">
@@ -803,17 +803,17 @@ const Page = () => {
                   </ul>
                   {stats.plan === 'Silver' ? (
                     <button disabled className="w-full py-4 bg-slate-100 text-slate-400 rounded-2xl font-black text-sm">ATUAL</button>
-                  ) : depositBalance >= 29.90 ? (
+                  ) : depositBalance >= 39.90 ? (
                     <div className="space-y-3">
                       <button 
-                        onClick={() => handleSubscribePlan('Silver', 29.90)}
+                        onClick={() => handleSubscribePlan('Silver', 39.90)}
                         className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-emerald-100 hover:bg-emerald-700 transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
                       >
                         <span>ASSINAR COM SALDO DE DEPÓSITO</span>
                         <span className="text-[10px] opacity-80 font-normal">Saldo de depósito: R$ {depositBalance.toFixed(2)}</span>
                       </button>
                       <button 
-                        onClick={() => handleOpenDeposit(29.90, 'Silver')}
+                        onClick={() => handleOpenDeposit(39.90, 'Silver')}
                         className="w-full py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-200 transition-all cursor-pointer"
                       >
                         Pagar com Pix
@@ -821,7 +821,7 @@ const Page = () => {
                     </div>
                   ) : (
                     <button 
-                      onClick={() => handleSubscribePlan('Silver', 29.90)}
+                      onClick={() => handleSubscribePlan('Silver', 39.90)}
                       className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all cursor-pointer"
                     >
                       ASSINAR AGORA

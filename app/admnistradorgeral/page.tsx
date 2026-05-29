@@ -333,12 +333,12 @@ export default function AdminPage() {
 
     if (planChanged) {
       if (editForm.plan === 'Silver') {
-        if (finalBalance < 29.90) {
-          alert('Saldo insuficiente! Para ativar o plano Silver, o usuário precisa ter no mínimo R$ 29,90 de saldo em conta.');
+        if (finalBalance < 39.90) {
+          alert('Saldo insuficiente! Para ativar o plano Silver, o usuário precisa ter no mínimo R$ 39,90 de saldo em conta.');
           return;
         }
-        finalBalance = Number((finalBalance - 29.90).toFixed(2));
-        finalDepositBalance = Math.max(0, finalDepositBalance - 29.90);
+        finalBalance = Number((finalBalance - 39.90).toFixed(2));
+        finalDepositBalance = Math.max(0, finalDepositBalance - 39.90);
       } else if (editForm.plan === 'Gold') {
         if (finalBalance < 97.00) {
           alert('Saldo insuficiente! Para ativar o plano Gold, o usuário precisa ter no mínimo R$ 97,00 de saldo em conta.');
@@ -631,7 +631,7 @@ export default function AdminPage() {
                               className="bg-white border border-slate-300 rounded px-1.5 py-0.5 text-xs text-slate-700 font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500"
                             >
                               <option value="Basic">Básico (Grátis)</option>
-                              <option value="Silver">Silver (R$ 29,90)</option>
+                              <option value="Silver">Silver (R$ 39,90)</option>
                               <option value="Gold">Gold (R$ 97,00)</option>
                               <option value="Diamond">Diamante (R$ 149,90)</option>
                             </select>

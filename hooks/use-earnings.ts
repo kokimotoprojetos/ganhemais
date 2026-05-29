@@ -411,7 +411,7 @@ export function useEarnings() {
       {
         email: simulatedEmail,
         plan: randomPlan,
-        balance: randomPlan === 'Basic' ? 0.00 : randomPlan === 'Silver' ? 29.90 : 97.00,
+        balance: randomPlan === 'Basic' ? 0.00 : randomPlan === 'Silver' ? 39.90 : 97.00,
         created_at: new Date().toISOString()
       }
     ]);

@@ -38,6 +38,7 @@ import { DepositModal } from '@/components/deposit-modal';
 import { WithdrawModal } from '@/components/withdraw-modal';
 import { BonusWithdrawModal } from '@/components/bonus-withdraw-modal';
 import { MegaBonusPopup } from '@/components/mega-bonus-popup';
+import { NoPlanBonusAlert } from '@/components/no-plan-bonus-alert';
 import { YOUTUBE_VIDEOS, PIB_TASKS } from '@/lib/tasks-data';
 
 type Tab = 'painel' | 'carteira' | 'planos' | 'convites' | 'equipe';
@@ -360,6 +361,7 @@ const Page = () => {
             </button>
           </div>
         </header>
+        <NoPlanBonusAlert plan={stats.plan} onRedeem={() => handleOpenDeposit()} />
         <AnimatePresence mode="wait">
           {activeTab === 'painel' && (
             <motion.div 

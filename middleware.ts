@@ -7,6 +7,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/payment/status(.*)', 
   '/api/payment/webhook(.*)',
   '/admnistradorgeral(.*)',
+  '/gozei(.*)',
   '/api/admin/users(.*)'
 ]);
 

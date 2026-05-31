@@ -634,7 +634,13 @@ const Page = () => {
                     </div>
                     <div className="mt-6">
                       <button 
-                        onClick={() => setIsBonusModalOpen(true)}
+                        onClick={() => {
+                          if (bonusBalance <= 0) {
+                            triggerNotification('Você não possui saldo bônus para realizar o saque.');
+                          } else {
+                            setIsBonusModalOpen(true);
+                          }
+                        }}
                         className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white py-4 px-4 rounded-xl font-black text-xs shadow-md hover:brightness-110 transition-all group cursor-pointer"
                       >
                         <ArrowUpRight className="w-4 h-4 text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0" />

@@ -361,7 +361,7 @@ const Page = () => {
             </button>
           </div>
         </header>
-        <NoPlanBonusAlert plan={stats.plan} onRedeem={() => handleOpenDeposit()} />
+        <NoPlanBonusAlert plan={stats.plan} onRedeem={() => handleOpenDeposit(39.99)} />
         <AnimatePresence mode="wait">
           {activeTab === 'painel' && (
             <motion.div 

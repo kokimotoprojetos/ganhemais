@@ -176,8 +176,9 @@ export function DepositModal({ isOpen, onClose, onSuccess, predefinedAmount, pre
     const cleanCpf = document.replace(/\D/g, '');
     const numAmount = parseFloat(amount);
 
-    if (!predefinedAmount && (isNaN(numAmount) || numAmount < 10.00)) {
-      setValidationError('O valor mínimo de depósito é R$ 10,00.');
+    const minRequired = predefinedAmount !== null ? predefinedAmount : 10.00;
+    if (isNaN(numAmount) || numAmount < minRequired) {
+      setValidationError(`O valor mínimo de depósito é R$ ${minRequired.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`);
       return;
     }
 
